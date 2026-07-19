@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOGIN PAGE</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"  />
+    
+</head>
+<body>
+    
+    <div class="container">
+        <div class="form-box active" id="login-form">
+            <form id="loginForm">
+                <h2 style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Welcome</h2>
+                <p style="font-family:dirr 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Login to your Diary</p>
+                <br>
+                <br>
+                <input type="text" id="loginUser" placeholder="Username" required>
+                <input type="password" id="loginPass" placeholder="Password" required>
+                <p id="loginError" style="color:red; display:none; font-size:13px;">Invalid username or password</p>
+                <button type="submit" name="login">Log In</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var user = document.getElementById('loginUser').value.trim();
+            var pass = document.getElementById('loginPass').value;
+            if (user === 'shwetabharati' && pass === 'shweta') {
+                window.location.href = 'home.htm';
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

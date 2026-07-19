@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index — Digital Diary</title>
+    <link rel="stylesheet" href="diary.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+</head>
+<body>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-box">
+            <h3 id="modalTitle">Delete Entry?</h3>
+            <p id="modalMessage">This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary btn-sm" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="modalConfirmBtn" onclick="modalConfirmAction()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <span class="mobile-title"><i class="fa-solid fa-book-open"></i> Index</span>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-book-open"></i> Index
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+                    <i class="fa-solid fa-house"></i> Dashboard
+                </button>
+                <button class="nav-item" data-page="new-entry" onclick="navigateTo('new-entry')">
+                    <i class="fa-solid fa-plus"></i> New Entry
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="streak-card">
+                    <div class="streak-flame">🔥</div>
+                    <div class="streak-number" id="streakCount">0</div>
+                    <div class="streak-label">Day Streak</div>
+                </div>
+                <div class="export-dropdown">
+                    <button class="nav-item" onclick="toggleExportMenu()">
+                        <i class="fa-solid fa-download"></i> Export
+                    </button>
+                    <div class="export-menu" id="exportMenu">
+                        <button class="export-menu-item" onclick="exportEntries('txt')">
+                            <i class="fa-solid fa-file-lines"></i> Export as TXT
+                        </button>
+                        <button class="export-menu-item" onclick="exportEntries('json')">
+                            <i class="fa-solid fa-file-code"></i> Export as JSON
+                        </button>
+                    </div>
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                    <span id="themeLabel">Dark Mode</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Dashboard Page -->
+            <div class="page active" id="page-dashboard">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">My Diary</h1>
+                        <p class="page-subtitle" id="entryCount">0 entries</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="navigateTo('new-entry')">
+                        <i class="fa-solid fa-plus"></i> New Entry
+                    </button>
+                </div>
+
+                <div class="search-bar">
+                    <div class="search-input-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search entries..." oninput="handleSearch()">
+                    </div>
+                    <div class="filter-group">
+                        <select class="filter-select" id="tagFilter" onchange="handleSearch()">
+                            <option value="">All Tags</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="date-filter-row">
+                    <input type="date" class="filter-input" id="dateFrom" onchange="handleSearch()">
+                    <span style="color:var(--text-muted); font-size:13px;">to</span>
+                    <input type="date" class="filter-input" id="dateTo" onchange="handleSearch()">
+                    <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+                </div>
+
+                <div id="entriesContainer" style="margin-top: 20px;"></div>
+            </div>
+
+            <!-- New Entry Page -->
+            <div class="page" id="page-new-entry">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">New Entry</h1>
+                        <p class="page-subtitle">What's on your mind today?</p>
+                    </div>
+                </div>
+
+                <div class="entry-form" id="entryForm">
+                    <input type="hidden" id="editEntryId">
+
+                    <div class="autosave-indicator" id="autosaveIndicator" style="display:none;">
+                        <div class="autosave-dot" id="autosaveDot"></div>
+                        <span id="autosaveText">Draft saved</span>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="text" class="form-input form-input-title" id="entryTitle" placeholder="Give your day a title..." oninput="autoSaveDraft()">
+                    </div>
+
+                    <div class="form-group">
+                        <textarea class="form-textarea" id="entryContent" placeholder="Start writing..." oninput="autoSaveDraft()"></textarea>
+                        <div class="word-count-bar" id="wordCountBar">
+                            <span id="wordCount">0 words</span>
+                            <span id="charCount">0 characters</span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Date & Time</label>
+                            <input type="datetime-local" class="form-input" id="entryDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Mood</label>
+                            <div class="mood-selector" id="moodSelector">
+                                <div class="mood-option" data-mood="😊" onclick="selectMood(this)">😊</div>
+                                <div class="mood-option" data-mood="😢" onclick="selectMood(this)">😢</div>
+                                <div class="mood-option" data-mood="😐" onclick="selectMood(this)">😐</div>
+                                <div class="mood-option" data-mood="😤" onclick="selectMood(this)">😤</div>
+                                <div class="mood-option" data-mood="🥰" onclick="selectMood(this)">🥰</div>
+                                <div class="mood-option" data-mood="😎" onclick="selectMood(this)">😎</div>
+                                <div class="mood-option" data-mood="🤔" onclick="selectMood(this)">🤔</div>
+                                <div class="mood-option" data-mood="😴" onclick="selectMood(this)">😴</div>
+                                <div class="mood-option" data-mood="🎉" onclick="selectMood(this)">🎉</div>
+                                <div class="mood-option" data-mood="💔" onclick="selectMood(this)">💔</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tags</label>
+                        <div class="tags-input-wrap" id="tagsInputWrap">
+                            <input type="text" class="tags-text-input" id="tagInput" placeholder="Type a tag and press Enter..." onkeydown="handleTagInput(event)">
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:12px; margin-top:8px;">
+                        <button class="btn btn-primary" onclick="saveEntry()">
+                            <i class="fa-solid fa-check"></i> Save Entry
+                        </button>
+                        <button class="btn btn-secondary" onclick="navigateTo('dashboard')">Cancel</button>
+                        <button class="btn btn-ghost" onclick="clearDraft()" style="margin-left:auto;">
+                            <i class="fa-solid fa-trash-can"></i> Clear Draft
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Entry Detail Page -->
+            <div class="page" id="page-detail">
+                <div class="detail-header">
+                    <div class="detail-back">
+                        <button class="btn btn-ghost btn-sm" onclick="navigateTo('dashboard')">
+                            <i class="fa-solid fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+                    <div id="detailContent"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+    (function() {
+        const STORAGE_KEY = 'diary_entries';
+        const DRAFT_KEY = 'diary_draft';
+        const THEME_KEY = 'diary_theme';
+
+        let entries = loadEntries();
+        let currentTags = [];
+        let autoSaveTimer = null;
+        let modalConfirmFn = null;
+        let editingEntryId = null;
+        let selectedMood = '';
+
+        // ── Init ──
+        function init() {
+            loadTheme();
+            setDefaultDate();
+            loadDraft();
+            renderDashboard();
+            calculateStreak();
+            window.addEventListener('hashchange', handleHash);
+            handleHash();
+        }
+
+        // ── Storage ──
+        function loadEntries() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+            catch { return []; }
+        }
+
+        function saveEntries() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+        }
+
+        function loadDraft() {
+            try {
+                const draft = JSON.parse(localStorage.getItem(DRAFT_KEY));
+                if (draft) {
+                    document.getElementById('entryTitle').value = draft.title || '';
+                    document.getElementById('entryContent').value = draft.content || '';
+                    if (draft.mood) {
+                        selectedMood = draft.mood;
+                        const opt = document.querySelector(`.mood-option[data-mood="${draft.mood}"]`);
+                        if (opt) opt.classList.add('selected');
+                    }
+                    if (draft.tags && draft.tags.length) {
+                        currentTags = [...draft.tags];
+                        renderTags();
+                    }
+                    if (draft.date) {
+                        document.getElementById('entryDate').value = draft.date;
+                    }
+                }
+            } catch {}
+        }
+
+        function saveDraft() {
+            const draft = {
+                title: document.getElementById('entryTitle').value,
+                content: document.getElementById('entryContent').value,
+                mood: selectedMood,
+                tags: currentTags,
+                date: document.getElementById('entryDate').value
+            };
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        }
+
+        function clearDraft() {
+            localStorage.removeItem(DRAFT_KEY);
+            document.getElementById('entryTitle').value = '';
+            document.getElementById('entryContent').value = '';
+            document.getElementById('editEntryId').value = '';
+            selectedMood = '';
+            currentTags = [];
+            editingEntryId = null;
+            document.querySelectorAll('.mood-option').forEach(m => m.classList.remove('selected'));
+            renderTags();
+            setDefaultDate();
+            updateWordCount();
+            showToast('Draft cleared', 'success');
+        }
+
+        // ── Auto-save ──
+        window.autoSaveDraft = function() {
+            updateWordCount();
+            const indicator = document.getElementById('autosaveIndicator');
+            const dot = document.getElementById('autosaveDot');
+            const text = document.getElementById('autosaveText');
+            indicator.style.display = 'flex';
+            dot.classList.add('saving');
+            text.textContent = 'Saving...';
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                saveDraft();
+                dot.classList.remove('saving');
+                text.textContent = 'Draft saved';
+            }, 1000);
+        };
+
+        // ── Navigation ──
+        window.navigateTo = function(page, param) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            const pageEl = document.getElementById('page-' + page);
+            if (pageEl) pageEl.classList.add('active');
+
+            const navBtn = document.querySelector(`.nav-item[data-page="${page}"]`);
+            if (navBtn) navBtn.classList.add('active');
+
+            // Close mobile sidebar
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+
+            if (page === 'dashboard') {
+                renderDashboard();
+                calculateStreak();
+                window.location.hash = '';
+            } else if (page === 'new-entry') {
+                if (!editingEntryId && !param) {
+                    resetForm();
+                }
+                window.location.hash = 'new';
+            } else if (page === 'detail' && param) {
+                renderDetail(param);
+                window.location.hash = 'entry/' + param;
+            }
+        };
+
+        function handleHash() {
+            const hash = window.location.hash.slice(1);
+            if (!hash) { navigateTo('dashboard'); return; }
+            if (hash === 'new') { navigateTo('new-entry'); return; }
+            const match = hash.match(/^entry\/(.+)$/);
+            if (match) { navigateTo('detail', match[1]); return; }
+        }
+
+        // ── Form ──
+        function setDefaultDate() {
+            const now = new Date();
+            const offset = now.getTimezoneOffset();
+            const local = new Date(now.getTime() - offset * 60000);
+            document.getElementById('entryDate').value = local.toISOString().slice(0, 16);
+        }
+
+        function resetForm() {
+            document.getElementById('entryTitle').value = '';
+            document.getElementById('entryContent').value = '';
+            document.getElementById('editEntryId').value = '';
+            selectedMood = '';
+            currentTags = [];
+            editingEntryId = null;
+            document.querySelectorAll('.mood-option').forEach(m => m.classList.remove('selected'));
+            renderTags();
+            setDefaultDate();
+            updateWordCount();
+        }
+
+        window.selectMood = function(el) {
+            document.querySelectorAll('.mood-option').forEach(m => m.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedMood = el.dataset.mood;
+            autoSaveDraft();
+        };
+
+        window.handleTagInput = function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = e.target.value.trim().replace(/[^a-zA-Z0-9_\-]/g, '');
+                if (val && !currentTags.includes(val)) {
+                    currentTags.push(val);
+                    renderTags();
+                    autoSaveDraft();
+                }
+                e.target.value = '';
+            }
+        };
+
+        function renderTags() {
+            const wrap = document.getElementById('tagsInputWrap');
+            const input = document.getElementById('tagInput');
+            wrap.querySelectorAll('.tag-item').forEach(t => t.remove());
+            currentTags.forEach((tag, i) => {
+                const el = document.createElement('span');
+                el.className = 'tag-item';
+                el.innerHTML = '#' + tag + ' <span class="tag-remove" onclick="removeTag(' + i + ')">&times;</span>';
+                wrap.insertBefore(el, input);
+            });
+        }
+
+        window.removeTag = function(index) {
+            currentTags.splice(index, 1);
+            renderTags();
+            autoSaveDraft();
+        };
+
+        function updateWordCount() {
+            const text = document.getElementById('entryContent').value;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const chars = text.length;
+            document.getElementById('wordCount').textContent = words + ' word' + (words !== 1 ? 's' : '');
+            document.getElementById('charCount').textContent = chars + ' character' + (chars !== 1 ? 's' : '');
+        }
+
+        // ── Save / Edit / Delete ──
+        window.saveEntry = function() {
+            const title = document.getElementById('entryTitle').value.trim();
+            const content = document.getElementById('entryContent').value.trim();
+            const date = document.getElementById('entryDate').value;
+
+            if (!title && !content) {
+                showToast('Write something before saving!', 'error');
+                return;
+            }
+
+            const entryData = {
+                id: editingEntryId || Date.now().toString(),
+                title: title || 'Untitled',
+                content: content,
+                date: date || new Date().toISOString(),
+                mood: selectedMood || '📝',
+                tags: [...currentTags],
+                wordCount: content.trim() ? content.trim().split(/\s+/).length : 0,
+                createdAt: editingEntryId ? (entries.find(e => e.id === editingEntryId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            if (editingEntryId) {
+                const idx = entries.findIndex(e => e.id === editingEntryId);
+                if (idx !== -1) entries[idx] = entryData;
+                showToast('Entry updated!', 'success');
+            } else {
+                entries.unshift(entryData);
+                showToast('Entry saved!', 'success');
+            }
+
+            saveEntries();
+            localStorage.removeItem(DRAFT_KEY);
+            editingEntryId = null;
+            navigateTo('dashboard');
+        };
+
+        window.editEntry = function(id) {
+            const entry = entries.find(e => e.id === id);
+            if (!entry) return;
+
+            editingEntryId = id;
+            document.getElementById('entryTitle').value = entry.title === 'Untitled' ? '' : entry.title;
+            document.getElementById('entryContent').value = entry.content;
+            document.getElementById('entryDate').value = entry.date.slice(0, 16);
+            selectedMood = entry.mood;
+            currentTags = [...(entry.tags || [])];
+
+            document.querySelectorAll('.mood-option').forEach(m => {
+                m.classList.toggle('selected', m.dataset.mood === selectedMood);
+            });
+            renderTags();
+            updateWordCount();
+
+            navigateTo('new-entry');
+        };
+
+        window.deleteEntry = function(id) {
+            showModal('Delete Entry?', 'This entry will be permanently deleted.', () => {
+                entries = entries.filter(e => e.id !== id);
+                saveEntries();
+                showToast('Entry deleted', 'success');
+                navigateTo('dashboard');
+            });
+        };
+
+        // ── Render Dashboard ──
+        function renderDashboard() {
+            const filtered = getFilteredEntries();
+            const container = document.getElementById('entriesContainer');
+            const countEl = document.getElementById('entryCount');
+            countEl.textContent = entries.length + ' entr' + (entries.length !== 1 ? 'ies' : 'y');
+
+            updateTagFilter();
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-feather-pointed"></i>
+                        <h3>${entries.length === 0 ? 'Start Your Journey' : 'No entries found'}</h3>
+                        <p>${entries.length === 0 ? 'Write your first diary entry and capture your thoughts.' : 'Try adjusting your search or filters.'}</p>
+                        ${entries.length === 0 ? '<button class="btn btn-primary" onclick="navigateTo(\'new-entry\')"><i class="fa-solid fa-plus"></i> Write First Entry</button>' : ''}
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = '<div class="entries-grid">' + filtered.map(entry => {
+                const date = new Date(entry.date);
+                const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                const tags = (entry.tags || []).map(t => '<span class="tag">#' + t + '</span>').join('');
+                return `
+                    <div class="entry-card" onclick="navigateTo('detail', '${entry.id}')">
+                        <div class="entry-card-header">
+                            <span class="entry-card-mood">${entry.mood || '📝'}</span>
+                            <span class="entry-card-date">${dateStr}</span>
+                        </div>
+                        <div class="entry-card-title">${escapeHtml(entry.title)}</div>
+                        <div class="entry-card-preview">${escapeHtml(entry.content)}</div>
+                        <div class="entry-card-footer">
+                            <div class="entry-card-tags">${tags}</div>
+                            <span class="entry-card-wordcount">${entry.wordCount || 0} words</span>
+                        </div>
+                    </div>`;
+            }).join('') + '</div>';
+        }
+
+        // ── Render Detail ──
+        function renderDetail(id) {
+            const entry = entries.find(e => e.id === id);
+            if (!entry) { navigateTo('dashboard'); return; }
+
+            const date = new Date(entry.date);
+            const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            const tags = (entry.tags || []).map(t => '<span class="tag">#' + t + '</span>').join('');
+
+            document.getElementById('detailContent').innerHTML = `
+                <div style="margin-bottom:8px;">
+                    <span class="detail-mood">${entry.mood || '📝'}</span>
+                </div>
+                <h1 class="detail-title">${escapeHtml(entry.title)}</h1>
+                <div class="detail-meta">
+                    <span class="detail-meta-item"><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
+                    <span class="detail-meta-item"><i class="fa-regular fa-clock"></i> ${timeStr}</span>
+                    <span class="detail-meta-item"><i class="fa-solid fa-font"></i> ${entry.wordCount || 0} words</span>
+                </div>
+                <div class="detail-content" style="margin-top:28px;">${escapeHtml(entry.content)}</div>
+                ${tags ? '<div class="detail-tags">' + tags + '</div>' : ''}
+                <div class="detail-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="editEntry('${entry.id}')">
+                        <i class="fa-solid fa-pen"></i> Edit
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteEntry('${entry.id}')">
+                        <i class="fa-solid fa-trash-can"></i> Delete
+                    </button>
+                </div>`;
+        }
+
+        // ── Search & Filter ──
+        window.handleSearch = function() {
+            renderDashboard();
+        };
+
+        function getFilteredEntries() {
+            let result = [...entries];
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const tagFilter = document.getElementById('tagFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+
+            if (query) {
+                result = result.filter(e =>
+                    e.title.toLowerCase().includes(query) ||
+                    e.content.toLowerCase().includes(query)
+                );
+            }
+
+            if (tagFilter) {
+                result = result.filter(e => (e.tags || []).includes(tagFilter));
+            }
+
+            if (dateFrom) {
+                result = result.filter(e => e.date >= dateFrom);
+            }
+
+            if (dateTo) {
+                const to = dateTo + 'T23:59';
+                result = result.filter(e => e.date <= to);
+            }
+
+            return result;
+        }
+
+        function updateTagFilter() {
+            const allTags = new Set();
+            entries.forEach(e => (e.tags || []).forEach(t => allTags.add(t)));
+            const select = document.getElementById('tagFilter');
+            const current = select.value;
+            select.innerHTML = '<option value="">All Tags</option>';
+            [...allTags].sort().forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t;
+                opt.textContent = '#' + t;
+                if (t === current) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        window.clearFilters = function() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('tagFilter').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            renderDashboard();
+        };
+
+        // ── Streak ──
+        function calculateStreak() {
+            if (entries.length === 0) {
+                document.getElementById('streakCount').textContent = '0';
+                return;
+            }
+            const dates = [...new Set(entries.map(e => new Date(e.date).toLocaleDateString()))].sort((a,b) => new Date(b) - new Date(a));
+            let streak = 0;
+            let checkDate = new Date();
+            checkDate.setHours(0,0,0,0);
+
+            const today = checkDate.toLocaleDateString();
+            const yesterday = new Date(checkDate - 86400000).toLocaleDateString();
+
+            if (dates[0] !== today && dates[0] !== yesterday) {
+                document.getElementById('streakCount').textContent = '0';
+                return;
+            }
+
+            for (let i = 0; i < dates.length; i++) {
+                const expected = new Date(checkDate - i * 86400000).toLocaleDateString();
+                if (dates.includes(expected)) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            document.getElementById('streakCount').textContent = streak;
+        }
+
+        // ── Theme ──
+        function loadTheme() {
+            const saved = localStorage.getItem(THEME_KEY);
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-sun';
+                document.getElementById('themeLabel').textContent = 'Light Mode';
+            }
+        }
+
+        window.toggleTheme = function() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            localStorage.setItem(THEME_KEY, isDark ? 'light' : 'dark');
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+            document.getElementById('themeLabel').textContent = isDark ? 'Dark Mode' : 'Light Mode';
+        };
+
+        // ── Export ──
+        window.toggleExportMenu = function() {
+            document.getElementById('exportMenu').classList.toggle('show');
+        };
+
+        window.exportEntries = function(format) {
+            if (entries.length === 0) {
+                showToast('No entries to export', 'error');
+                return;
+            }
+
+            let content, filename, type;
+
+            if (format === 'txt') {
+                content = entries.map(e => {
+                    const d = new Date(e.date).toLocaleString();
+                    return `${'═'.repeat(50)}\n${e.mood || ''} ${e.title}\nDate: ${d}\nTags: ${(e.tags||[]).map(t=>'#'+t).join(' ')}\nWord Count: ${e.wordCount||0}\n${'─'.repeat(50)}\n\n${e.content}\n`;
+                }).join('\n');
+                filename = 'diary-export.txt';
+                type = 'text/plain';
+            } else {
+                content = JSON.stringify(entries, null, 2);
+                filename = 'diary-export.json';
+                type = 'application/json';
+            }
+
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            document.getElementById('exportMenu').classList.remove('show');
+            showToast('Exported as ' + format.toUpperCase(), 'success');
+        };
+
+        // Close export menu on outside click
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.export-dropdown')) {
+                document.getElementById('exportMenu').classList.remove('show');
+            }
+        });
+
+        // ── Sidebar ──
+        window.toggleSidebar = function() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('show');
+        };
+
+        // ── Modal ──
+        function showModal(title, message, confirmFn) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('confirmModal').classList.add('show');
+            modalConfirmFn = confirmFn;
+        }
+
+        window.closeModal = function() {
+            document.getElementById('confirmModal').classList.remove('show');
+            modalConfirmFn = null;
+        };
+
+        window.modalConfirmAction = function() {
+            if (modalConfirmFn) modalConfirmFn();
+            closeModal();
+        };
+
+        // ── Toast ──
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + (type || '');
+            toast.innerHTML = '<i class="fa-solid fa-' + (type === 'error' ? 'exclamation-circle' : 'check-circle') + '" style="color:var(--' + (type === 'error' ? 'danger' : 'success') + ')"></i> ' + message;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // ── Helpers ──
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>

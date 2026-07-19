@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{
+            margin: 0;
+            padding:0;
+            
+        }
+        body{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(white, #dfe9f3);
+            color: #333;
+        }
+        input 
+        {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #f5f0f2;
+            border-radius: 5px;
+            font-size: 16px;
+            align-items: center;
+            
+        }
+        button{
+            background-color: rgb(211, 67, 115);
+            color: rgb(241, 235, 239);
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.5s;
+            padding: 10px 15px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover{
+            background-color: rgb(218, 119, 188)
+        }
+        .form-box{
+            border: 1px solid #eae1e7;
+            padding: 80px;
+            width: 400px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(247, 239, 239, 0.1);
+            border-radius: 10px;
+        } 
+        .form-box:not(.active){
+            display: none;
+        }
+        h4{
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            text-align: center;
+        }
+        .container{
+            text-align: center;
+            margin-top: 50px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        p{
+            font-size: 14.5px;
+        }
+        a{
+            text-decoration: none;
+            color: rgb(211, 67, 115);
+        }
+        label{
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        input:checked{
+            accent-color: rgb(211, 67, 115);
+            align-items: left;
+            padding-left: 0px;
+            margin-left: 10px;
+    
+        }
+        .verify{
+            font-size: 13px;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+        #verifyMsg{
+            color: green;
+            display: none;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+    </style>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script>
+        function checkcaptcha() {
+            var response = grecaptcha.getResponse();
+            if (response.length == 0) {
+                document.getElementById("verifyMsg").style.display = "block";
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+    <div class="form-box active" id="forget-form">
+    <h1 style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;" >Forget Password</h1>
+    <br>
+    <br>
+    <form id="myform" onsubmit="return checkcaptcha()">
+        <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;" >Please enter your email address to reset your password.</p>
+        <input type="email" name="email" placeholder="Email/Number" required>
+        <div> 
+            <p class="verify">Verify You're Not A Robot</p>
+            <div class="g-recaptcha" data-sitekey="6LdqZeIrAAAAAJbUi-gZ5mIVCUAxaAau7seoE9xL"></div>
+            <br>
+            <button type="submit" style="width: 17%; padding: 10px 15px ;position: relative;" onclick="showForm('verify-form')">Submit</button>
+       
+        </div>
+        
+        <br>
+        
+    </form>
+    <br>
+    
+        </div>
+        <br>
+        <form action="">
+        <div class="form-box" id="verify-form">
+        <h4>Verify Your Email</h4>
+        <br>
+        <br>
+        <p>Please Enter The verification code we sent to your email</p>
+        <br>
+        <input type="text" name="code" placeholder="OTP" maxlength="4"  
+        required>
+        <br>
+        <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Please enter your new password.</p>
+        <br>
+        <input type="password" name="new-password" placeholder="New Password" type="hidden or show" required maxlength="8">
+        <br>
+        <br>
+        <br>
+        <button type="submit" name="reset-password">
+            Reset Password
+        </button>
+     
+        <div>
+            <a href="index.html" style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Back to Login</a>
+        </div>
+        </div>
+        </form>
+        </div>
+        
+    </form>
+
+<script>
+function showForm(formId) {
+    document.querySelectorAll('.form-box').forEach(form => {
+        form.classList.remove('active');
+    });
+    document.getElementById(formId).classList.add('active');
+}
+</script>
+</body>
+</html>
