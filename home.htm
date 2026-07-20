@@ -24,6 +24,27 @@
         </div>
     </div>
 
+    <!-- Wallpaper Modal -->
+    <div class="modal-overlay" id="wallpaperModal">
+        <div class="modal-box wallpaper-modal-box">
+            <h3>Choose Wallpaper</h3>
+            <p style="margin-bottom:16px;">Set a background for your diary pages.</p>
+            <div class="wallpaper-grid" id="wallpaperGrid"></div>
+            <div class="wallpaper-upload-section">
+                <input type="file" id="wallpaperFileInput" accept="image/*" style="display:none;" onchange="handleWallpaperUpload(event)">
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('wallpaperFileInput').click()">
+                    <i class="fa-solid fa-upload"></i> Upload Custom Image
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="clearWallpaper()">
+                    <i class="fa-solid fa-xmark"></i> Remove Wallpaper
+                </button>
+            </div>
+            <div class="modal-actions" style="margin-top:12px;">
+                <button class="btn btn-secondary btn-sm" onclick="closeWallpaperModal()">Done</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Mobile Header -->
     <div class="mobile-header">
         <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
@@ -64,6 +85,9 @@
                         </button>
                     </div>
                 </div>
+                <button class="nav-item" onclick="openWallpaperModal()">
+                    <i class="fa-solid fa-image"></i> Wallpaper
+                </button>
                 <button class="theme-toggle" onclick="toggleTheme()">
                     <i class="fa-solid fa-moon" id="themeIcon"></i>
                     <span id="themeLabel">Dark Mode</span>
@@ -196,6 +220,7 @@
         const STORAGE_KEY = 'diary_entries';
         const DRAFT_KEY = 'diary_draft';
         const THEME_KEY = 'diary_theme';
+        const WALLPAPER_KEY = 'diary_wallpaper';
 
         let entries = loadEntries();
         let currentTags = [];
@@ -207,6 +232,7 @@
         // ── Init ──
         function init() {
             loadTheme();
+            loadWallpaper();
             setDefaultDate();
             loadDraft();
             renderDashboard();
@@ -638,6 +664,111 @@
             localStorage.setItem(THEME_KEY, isDark ? 'light' : 'dark');
             document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
             document.getElementById('themeLabel').textContent = isDark ? 'Dark Mode' : 'Light Mode';
+        };
+
+        // ── Wallpaper ──
+        const wallpaperPresets = [
+            { id: 'none', label: 'None', value: '' },
+            { id: 'sunset', label: 'Sunset', value: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fdfcfb 100%)' },
+            { id: 'ocean', label: 'Ocean', value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+            { id: 'forest', label: 'Forest', value: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' },
+            { id: 'lavender', label: 'Lavender', value: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)' },
+            { id: 'midnight', label: 'Midnight', value: 'linear-gradient(135deg, #0c0c1d 0%, #1a1a3e 50%, #2d1b69 100%)' },
+            { id: 'peach', label: 'Peach', value: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)' },
+            { id: 'aurora', label: 'Aurora', value: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 30%, #7c3aed 70%, #f43f5e 100%)' },
+            { id: 'paper', label: 'Paper', value: 'repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(0,0,0,0.03) 24px, rgba(0,0,0,0.03) 25px), repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(0,0,0,0.02) 24px, rgba(0,0,0,0.02) 25px)' },
+            { id: 'dots', label: 'Dots', value: 'radial-gradient(circle, var(--border) 1px, transparent 1px)', bgSize: '20px 20px' },
+            { id: 'waves', label: 'Waves', value: 'radial-gradient(ellipse at 10% 90%, rgba(169,31,128,0.08) 0%, transparent 50%), radial-gradient(ellipse at 90% 10%, rgba(102,126,234,0.08) 0%, transparent 50%)' }
+        ];
+
+        function loadWallpaper() {
+            try {
+                const saved = localStorage.getItem(WALLPAPER_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    applyWallpaper(data);
+                }
+            } catch {}
+        }
+
+        function applyWallpaper(data) {
+            const main = document.querySelector('.main-content');
+            if (!data || !data.value) {
+                main.style.backgroundImage = '';
+                main.style.backgroundSize = '';
+                return;
+            }
+            main.style.backgroundImage = data.value;
+            main.style.backgroundSize = data.bgSize || '';
+        }
+
+        window.openWallpaperModal = function() {
+            renderWallpaperGrid();
+            document.getElementById('wallpaperModal').classList.add('show');
+        };
+
+        window.closeWallpaperModal = function() {
+            document.getElementById('wallpaperModal').classList.remove('show');
+        };
+
+        function renderWallpaperGrid() {
+            const grid = document.getElementById('wallpaperGrid');
+            let currentId = 'none';
+            try {
+                const saved = localStorage.getItem(WALLPAPER_KEY);
+                if (saved) currentId = JSON.parse(saved).id || 'none';
+            } catch {}
+
+            grid.innerHTML = wallpaperPresets.map(p => {
+                const bg = p.value ? p.value : 'var(--bg-card)';
+                return `<div class="wallpaper-thumb ${p.id === currentId ? 'selected' : ''}" 
+                    style="background:${bg};${p.bgSize ? 'background-size:' + p.bgSize : ''}" 
+                    onclick="selectWallpaper('${p.id}')">
+                    <div class="wallpaper-thumb-label">${p.label}</div>
+                </div>`;
+            }).join('');
+        }
+
+        window.selectWallpaper = function(id) {
+            const preset = wallpaperPresets.find(p => p.id === id);
+            if (!preset) return;
+            const data = { id: preset.id, value: preset.value, bgSize: preset.bgSize || '' };
+            if (preset.id === 'none') {
+                localStorage.removeItem(WALLPAPER_KEY);
+                applyWallpaper(null);
+            } else {
+                localStorage.setItem(WALLPAPER_KEY, JSON.stringify(data));
+                applyWallpaper(data);
+            }
+            renderWallpaperGrid();
+            showToast(preset.id === 'none' ? 'Wallpaper removed' : 'Wallpaper set!', 'success');
+        };
+
+        window.handleWallpaperUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 512 * 1024) {
+                showToast('Image must be under 500KB', 'error');
+                event.target.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = { id: 'custom', value: `url(${e.target.result})`, bgSize: 'cover' };
+                localStorage.setItem(WALLPAPER_KEY, JSON.stringify(data));
+                applyWallpaper(data);
+                renderWallpaperGrid();
+                showToast('Custom wallpaper set!', 'success');
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        };
+
+        window.clearWallpaper = function() {
+            localStorage.removeItem(WALLPAPER_KEY);
+            applyWallpaper(null);
+            renderWallpaperGrid();
+            showToast('Wallpaper removed', 'success');
         };
 
         // ── Export ──

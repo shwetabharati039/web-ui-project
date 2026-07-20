@@ -1013,3 +1013,75 @@ body {
     margin-top: 8px;
     flex-wrap: wrap;
 }
+
+/* Wallpaper Modal */
+.wallpaper-modal-box {
+    max-width: 520px;
+}
+
+.wallpaper-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.wallpaper-thumb {
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.wallpaper-thumb:hover {
+    border-color: var(--accent);
+    transform: scale(1.05);
+}
+
+.wallpaper-thumb.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
+}
+
+.wallpaper-thumb-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 4px;
+    text-align: center;
+}
+
+.wallpaper-upload-section {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+/* Wallpaper applied to main content */
+.main-content {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.main-content::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 260px;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    z-index: -1;
+    pointer-events: none;
+}
