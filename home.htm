@@ -65,6 +65,15 @@
                 <button class="nav-item" data-page="new-entry" onclick="navigateTo('new-entry')">
                     <i class="fa-solid fa-plus"></i> New Entry
                 </button>
+                <button class="nav-item" data-page="calendar" onclick="navigateTo('calendar')">
+                    <i class="fa-solid fa-calendar-days"></i> Calendar
+                </button>
+                <button class="nav-item" data-page="analytics" onclick="navigateTo('analytics')">
+                    <i class="fa-solid fa-chart-line"></i> Analytics
+                </button>
+                <button class="nav-item" data-page="trash" onclick="navigateTo('trash')">
+                    <i class="fa-solid fa-trash-can"></i> Trash <span class="trash-count-badge" id="trashBadge" style="display:none;">0</span>
+                </button>
             </nav>
             <div class="sidebar-footer">
                 <div class="streak-card">
@@ -92,6 +101,9 @@
                     <i class="fa-solid fa-moon" id="themeIcon"></i>
                     <span id="themeLabel">Dark Mode</span>
                 </button>
+                <button class="nav-item" onclick="openShortcutsModal()">
+                    <i class="fa-solid fa-keyboard"></i> Shortcuts
+                </button>
             </div>
         </aside>
 
@@ -108,6 +120,25 @@
                     <button class="btn btn-primary" onclick="navigateTo('new-entry')">
                         <i class="fa-solid fa-plus"></i> New Entry
                     </button>
+                </div>
+
+                <div class="writing-tip" id="writingTip">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <span id="writingTipText"></span>
+                </div>
+
+                <div class="prompt-banner" id="promptBanner">
+                    <div class="prompt-category-row" id="promptCategories"></div>
+                    <div class="prompt-label">Today's Writing Prompt</div>
+                    <div class="prompt-text" id="promptText"></div>
+                    <div class="prompt-actions">
+                        <button class="btn btn-primary btn-sm" onclick="usePrompt()">
+                            <i class="fa-solid fa-pen"></i> Use This Prompt
+                        </button>
+                        <button class="btn btn-ghost btn-sm" onclick="refreshPrompt()">
+                            <i class="fa-solid fa-shuffle"></i> Another One
+                        </button>
+                    </div>
                 </div>
 
                 <div class="search-bar">
@@ -189,6 +220,16 @@
                         </div>
                     </div>
 
+                    <div class="form-group">
+                        <label class="form-label">Images</label>
+                        <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('imageFileInput').click()">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>Click to add images (max 3, auto-compressed)</span>
+                        </div>
+                        <input type="file" id="imageFileInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)" multiple>
+                        <div class="image-preview-grid" id="imagePreviewGrid"></div>
+                    </div>
+
                     <div style="display:flex; gap:12px; margin-top:8px;">
                         <button class="btn btn-primary" onclick="saveEntry()">
                             <i class="fa-solid fa-check"></i> Save Entry
@@ -212,7 +253,99 @@
                     <div id="detailContent"></div>
                 </div>
             </div>
+
+            <!-- Calendar Page -->
+            <div class="page" id="page-calendar">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Calendar</h1>
+                        <p class="page-subtitle">Browse your diary by date</p>
+                    </div>
+                </div>
+                <div class="calendar-nav">
+                    <button class="calendar-nav-btn" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                    <div class="calendar-month-label" id="calendarMonthLabel"></div>
+                    <button class="calendar-nav-btn" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+                <div class="calendar-day-panel" id="calendarDayPanel">
+                    <div class="calendar-day-panel-title" id="calendarDayTitle"></div>
+                    <div class="calendar-day-entries" id="calendarDayEntries"></div>
+                </div>
+            </div>
+
+            <!-- Analytics Page -->
+            <div class="page" id="page-analytics">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Analytics</h1>
+                        <p class="page-subtitle">Insights about your journaling</p>
+                    </div>
+                </div>
+                <div class="analytics-grid" id="analyticsStats"></div>
+                <div class="analytics-section" id="moodChartSection">
+                    <div class="analytics-section-title"><i class="fa-solid fa-face-smile"></i> Mood Distribution</div>
+                    <div id="moodChart"></div>
+                </div>
+                <div class="analytics-section">
+                    <div class="analytics-section-title"><i class="fa-solid fa-fire"></i> Activity (Last 30 Days)</div>
+                    <div class="activity-heatmap" id="activityHeatmap"></div>
+                    <div class="heatmap-legend">
+                        <span>Less</span>
+                        <div class="heatmap-legend-cell" style="background:var(--bg-secondary)"></div>
+                        <div class="heatmap-legend-cell heatmap-cell level-1"></div>
+                        <div class="heatmap-legend-cell heatmap-cell level-2"></div>
+                        <div class="heatmap-legend-cell heatmap-cell level-4"></div>
+                        <span>More</span>
+                    </div>
+                </div>
+                <div class="analytics-section">
+                    <div class="analytics-section-title"><i class="fa-solid fa-tags"></i> Top Tags</div>
+                    <div class="tag-cloud" id="tagCloud"></div>
+                </div>
+                <div class="analytics-section">
+                    <div class="analytics-section-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Moods</div>
+                    <div class="mood-timeline" id="moodTimeline"></div>
+                </div>
+            </div>
+
+            <!-- Trash Page -->
+            <div class="page" id="page-trash">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Trash</h1>
+                        <p class="page-subtitle" id="trashSubtitle">Deleted entries are kept for 30 days</p>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="emptyTrash()">
+                        <i class="fa-solid fa-trash-can"></i> Empty Trash
+                    </button>
+                </div>
+                <div id="trashContainer"></div>
+            </div>
         </main>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close"><i class="fa-solid fa-xmark"></i></button>
+        <img id="lightboxImg" src="" alt="Full size image">
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div class="modal-overlay shortcuts-modal" id="shortcutsModal">
+        <div class="modal-box">
+            <h3>Keyboard Shortcuts</h3>
+            <div class="shortcut-row"><span class="shortcut-desc">New Entry</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>N</kbd></span></div>
+            <div class="shortcut-row"><span class="shortcut-desc">Search</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>K</kbd></span></div>
+            <div class="shortcut-row"><span class="shortcut-desc">Go Back</span><span class="shortcut-key"><kbd>Esc</kbd></span></div>
+            <div class="shortcut-row"><span class="shortcut-desc">Dashboard</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>H</kbd></span></div>
+            <div class="shortcut-row"><span class="shortcut-desc">Calendar</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>L</kbd></span></div>
+            <div class="shortcut-row"><span class="shortcut-desc">Analytics</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>A</kbd></span></div>
+            <div class="shortcut-row"><span class="shortcut-desc">Toggle Theme</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>D</kbd></span></div>
+            <div class="modal-actions" style="margin-top:16px;">
+                <button class="btn btn-secondary btn-sm" onclick="closeShortcutsModal()">Close</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -221,35 +354,175 @@
         const DRAFT_KEY = 'diary_draft';
         const THEME_KEY = 'diary_theme';
         const WALLPAPER_KEY = 'diary_wallpaper';
+        const TRASH_KEY = 'diary_trash';
+        const PIN_KEY = 'diary_pins';
+        const IMAGES_KEY = 'diary_images';
 
         let entries = loadEntries();
+        let trash = loadTrash();
         let currentTags = [];
+        let currentImages = [];
         let autoSaveTimer = null;
         let modalConfirmFn = null;
         let editingEntryId = null;
         let selectedMood = '';
+        let calendarYear, calendarMonth;
+        let currentPromptCategory = 'all';
 
-        // ── Init ──
-        function init() {
-            loadTheme();
-            loadWallpaper();
-            setDefaultDate();
-            loadDraft();
-            renderDashboard();
-            calculateStreak();
-            window.addEventListener('hashchange', handleHash);
-            handleHash();
+        // ═══════════════════════════════════════
+        // WRITING PROMPTS
+        // ═══════════════════════════════════════
+        const prompts = {
+            gratitude: [
+                "What are three things you're grateful for today?",
+                "Who made your day better recently and why?",
+                "What's a small pleasure you often overlook?",
+                "Describe a challenge that ultimately made you stronger.",
+                "What part of your daily routine do you enjoy most?",
+                "What's a skill you have that you're thankful for?",
+                "Describe a place that always makes you feel peaceful.",
+                "What's something kind someone did for you this week?",
+                "What opportunity are you grateful to have right now?",
+                "What's a memory that always makes you smile?"
+            ],
+            reflection: [
+                "What would you tell your younger self?",
+                "Describe a moment that changed your perspective.",
+                "What pattern in your behavior do you want to change?",
+                "If today was your last day, what would you do differently?",
+                "What's a decision you made that you're proud of?",
+                "How have you grown in the past year?",
+                "What's holding you back from reaching your potential?",
+                "Describe a time you overcame a fear.",
+                "What does success mean to you personally?",
+                "What are you avoiding that you know you should face?"
+            ],
+            creativity: [
+                "Write a letter to your future self, 10 years from now.",
+                "Describe your ideal day from morning to night.",
+                "If you could have dinner with anyone, who and why?",
+                "Write about a color that represents your mood today.",
+                "Describe a dream you had recently in vivid detail.",
+                "Create a short story starting with 'The door opened and...'",
+                "What would you create if time and money weren't obstacles?",
+                "Describe a fictional world you'd like to visit.",
+                "Write about the most interesting stranger you've seen.",
+                "What song describes your life right now and why?"
+            ],
+            goals: [
+                "What are your top 3 goals for this month?",
+                "Describe where you want to be in 5 years.",
+                "What's one habit you want to build this week?",
+                "What's a fear you want to conquer?",
+                "What would you do if you couldn't fail?",
+                "List 5 things you want to accomplish this year.",
+                "What's the most important skill you want to learn?",
+                "Describe your ideal workday.",
+                "What's a project you've been putting off?",
+                "What would make tomorrow a perfect day?"
+            ],
+            memories: [
+                "Describe your happiest childhood memory.",
+                "What's the best trip you've ever taken?",
+                "Write about a moment you felt truly alive.",
+                "Describe the first time you felt independent.",
+                "What's a tradition you love and want to keep?",
+                "Write about a friendship that shaped who you are.",
+                "Describe a meal that was more than just food.",
+                "What's a place you want to revisit?",
+                "Write about a moment of unexpected joy.",
+                "Describe a lesson you learned the hard way."
+            ]
+        };
+
+        const writingTips = [
+            "Try writing without editing for the first 5 minutes — let thoughts flow freely.",
+            "Use sensory details: what did you see, hear, smell, taste, and feel today?",
+            "Start mid-sentence to skip past writer's block: '...and that's when I realized...'",
+            "Write a dialogue between two versions of yourself: today's you and last year's you.",
+            "End every entry with one question you want to answer tomorrow.",
+            "Try writing in present tense instead of past tense for a fresh perspective.",
+            "Focus on one specific moment from today and describe it in detail.",
+            "Write about the weather and how it matched (or contrasted) your mood.",
+            "Use metaphors: if today was a color/animal/season, what would it be?",
+            "Write a short letter of forgiveness — to yourself or someone else."
+        ];
+
+        function getPromptSeed() {
+            const now = new Date();
+            return now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
         }
 
-        // ── Storage ──
+        function seededRandom(seed) {
+            let x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        }
+
+        function renderPromptBanner() {
+            const categories = Object.keys(prompts);
+            const catRow = document.getElementById('promptCategories');
+            catRow.innerHTML = '<button class="prompt-chip ' + (currentPromptCategory === 'all' ? 'active' : '') + '" onclick="setPromptCategory(\'all\')">All</button>' +
+                categories.map(c => '<button class="prompt-chip ' + (currentPromptCategory === c ? 'active' : '') + '" onclick="setPromptCategory(\'' + c + '\')">' + c.charAt(0).toUpperCase() + c.slice(1) + '</button>').join('');
+
+            let pool;
+            if (currentPromptCategory === 'all') {
+                pool = categories.reduce((acc, c) => acc.concat(prompts[c]), []);
+            } else {
+                pool = prompts[currentPromptCategory] || [];
+            }
+
+            const seed = getPromptSeed() + currentPromptCategory.length;
+            const idx = Math.floor(seededRandom(seed) * pool.length);
+            document.getElementById('promptText').textContent = pool[idx] || "Write about whatever comes to mind today.";
+        }
+
+        window.setPromptCategory = function(cat) {
+            currentPromptCategory = cat;
+            renderPromptBanner();
+        };
+
+        window.usePrompt = function() {
+            const prompt = document.getElementById('promptText').textContent;
+            resetForm();
+            document.getElementById('entryTitle').value = prompt;
+            navigateTo('new-entry');
+            autoSaveDraft();
+        };
+
+        window.refreshPrompt = function() {
+            const seed = getPromptSeed() + Date.now();
+            let pool;
+            if (currentPromptCategory === 'all') {
+                pool = Object.keys(prompts).reduce((acc, c) => acc.concat(prompts[c]), []);
+            } else {
+                pool = prompts[currentPromptCategory] || [];
+            }
+            const idx = Math.floor(seededRandom(seed) * pool.length);
+            document.getElementById('promptText').textContent = pool[idx];
+        };
+
+        function renderWritingTip() {
+            const seed = getPromptSeed();
+            const idx = Math.floor(seededRandom(seed + 7) * writingTips.length);
+            document.getElementById('writingTipText').innerHTML = '<strong>Writing Tip:</strong> ' + writingTips[idx];
+        }
+
+        // ═══════════════════════════════════════
+        // STORAGE
+        // ═══════════════════════════════════════
         function loadEntries() {
             try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
             catch { return []; }
         }
 
-        function saveEntries() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+        function saveEntries() { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+
+        function loadTrash() {
+            try { return JSON.parse(localStorage.getItem(TRASH_KEY)) || []; }
+            catch { return []; }
         }
+
+        function saveTrash() { localStorage.setItem(TRASH_KEY, JSON.stringify(trash)); }
 
         function loadDraft() {
             try {
@@ -259,29 +532,30 @@
                     document.getElementById('entryContent').value = draft.content || '';
                     if (draft.mood) {
                         selectedMood = draft.mood;
-                        const opt = document.querySelector(`.mood-option[data-mood="${draft.mood}"]`);
+                        const opt = document.querySelector('.mood-option[data-mood="' + draft.mood + '"]');
                         if (opt) opt.classList.add('selected');
                     }
                     if (draft.tags && draft.tags.length) {
                         currentTags = [...draft.tags];
                         renderTags();
                     }
-                    if (draft.date) {
-                        document.getElementById('entryDate').value = draft.date;
+                    if (draft.images && draft.images.length) {
+                        currentImages = [...draft.images];
+                        renderImagePreviews();
                     }
+                    if (draft.date) document.getElementById('entryDate').value = draft.date;
                 }
             } catch {}
         }
 
         function saveDraft() {
-            const draft = {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({
                 title: document.getElementById('entryTitle').value,
                 content: document.getElementById('entryContent').value,
-                mood: selectedMood,
-                tags: currentTags,
+                mood: selectedMood, tags: currentTags,
+                images: currentImages,
                 date: document.getElementById('entryDate').value
-            };
-            localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+            }));
         }
 
         function clearDraft() {
@@ -291,15 +565,19 @@
             document.getElementById('editEntryId').value = '';
             selectedMood = '';
             currentTags = [];
+            currentImages = [];
             editingEntryId = null;
             document.querySelectorAll('.mood-option').forEach(m => m.classList.remove('selected'));
             renderTags();
+            renderImagePreviews();
             setDefaultDate();
             updateWordCount();
             showToast('Draft cleared', 'success');
         }
 
-        // ── Auto-save ──
+        // ═══════════════════════════════════════
+        // AUTO-SAVE
+        // ═══════════════════════════════════════
         window.autoSaveDraft = function() {
             updateWordCount();
             const indicator = document.getElementById('autosaveIndicator');
@@ -316,33 +594,40 @@
             }, 1000);
         };
 
-        // ── Navigation ──
+        // ═══════════════════════════════════════
+        // NAVIGATION
+        // ═══════════════════════════════════════
         window.navigateTo = function(page, param) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
             const pageEl = document.getElementById('page-' + page);
             if (pageEl) pageEl.classList.add('active');
-
-            const navBtn = document.querySelector(`.nav-item[data-page="${page}"]`);
+            const navBtn = document.querySelector('.nav-item[data-page="' + page + '"]');
             if (navBtn) navBtn.classList.add('active');
-
-            // Close mobile sidebar
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarOverlay').classList.remove('show');
 
             if (page === 'dashboard') {
                 renderDashboard();
+                renderPromptBanner();
+                renderWritingTip();
                 calculateStreak();
                 window.location.hash = '';
             } else if (page === 'new-entry') {
-                if (!editingEntryId && !param) {
-                    resetForm();
-                }
+                if (!editingEntryId && !param) resetForm();
                 window.location.hash = 'new';
             } else if (page === 'detail' && param) {
                 renderDetail(param);
                 window.location.hash = 'entry/' + param;
+            } else if (page === 'calendar') {
+                renderCalendar();
+                window.location.hash = 'calendar';
+            } else if (page === 'analytics') {
+                renderAnalytics();
+                window.location.hash = 'analytics';
+            } else if (page === 'trash') {
+                renderTrash();
+                window.location.hash = 'trash';
             }
         };
 
@@ -350,11 +635,16 @@
             const hash = window.location.hash.slice(1);
             if (!hash) { navigateTo('dashboard'); return; }
             if (hash === 'new') { navigateTo('new-entry'); return; }
+            if (hash === 'calendar') { navigateTo('calendar'); return; }
+            if (hash === 'analytics') { navigateTo('analytics'); return; }
+            if (hash === 'trash') { navigateTo('trash'); return; }
             const match = hash.match(/^entry\/(.+)$/);
             if (match) { navigateTo('detail', match[1]); return; }
         }
 
-        // ── Form ──
+        // ═══════════════════════════════════════
+        // FORM
+        // ═══════════════════════════════════════
         function setDefaultDate() {
             const now = new Date();
             const offset = now.getTimezoneOffset();
@@ -368,9 +658,11 @@
             document.getElementById('editEntryId').value = '';
             selectedMood = '';
             currentTags = [];
+            currentImages = [];
             editingEntryId = null;
             document.querySelectorAll('.mood-option').forEach(m => m.classList.remove('selected'));
             renderTags();
+            renderImagePreviews();
             setDefaultDate();
             updateWordCount();
         }
@@ -421,24 +713,88 @@
             document.getElementById('charCount').textContent = chars + ' character' + (chars !== 1 ? 's' : '');
         }
 
-        // ── Save / Edit / Delete ──
+        // ═══════════════════════════════════════
+        // IMAGE ATTACHMENTS
+        // ═══════════════════════════════════════
+        window.handleImageUpload = function(event) {
+            const files = Array.from(event.target.files);
+            if (currentImages.length + files.length > 3) {
+                showToast('Maximum 3 images per entry', 'error');
+                return;
+            }
+            files.forEach(file => {
+                if (file.size > 3 * 1024 * 1024) {
+                    showToast('Image must be under 3MB', 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX = 800;
+                        let w = img.width, h = img.height;
+                        if (w > MAX || h > MAX) {
+                            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                            else { w = Math.round(w * MAX / h); h = MAX; }
+                        }
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.7);
+                        currentImages.push(compressed);
+                        renderImagePreviews();
+                        autoSaveDraft();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+            event.target.value = '';
+        };
+
+        window.removeImage = function(index) {
+            currentImages.splice(index, 1);
+            renderImagePreviews();
+            autoSaveDraft();
+        };
+
+        function renderImagePreviews() {
+            const grid = document.getElementById('imagePreviewGrid');
+            grid.innerHTML = currentImages.map((src, i) =>
+                '<div class="image-preview-item"><img src="' + src + '" alt="Preview"><button class="image-preview-remove" onclick="removeImage(' + i + ')">&times;</button></div>'
+            ).join('');
+        }
+
+        // ═══════════════════════════════════════
+        // LIGHTBOX
+        // ═══════════════════════════════════════
+        window.openLightbox = function(src) {
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightbox').classList.add('show');
+        };
+
+        window.closeLightbox = function() {
+            document.getElementById('lightbox').classList.remove('show');
+        };
+
+        // ═══════════════════════════════════════
+        // SAVE / EDIT / DELETE (with images & trash)
+        // ═══════════════════════════════════════
         window.saveEntry = function() {
             const title = document.getElementById('entryTitle').value.trim();
             const content = document.getElementById('entryContent').value.trim();
             const date = document.getElementById('entryDate').value;
-
-            if (!title && !content) {
-                showToast('Write something before saving!', 'error');
-                return;
-            }
+            if (!title && !content) { showToast('Write something before saving!', 'error'); return; }
 
             const entryData = {
                 id: editingEntryId || Date.now().toString(),
-                title: title || 'Untitled',
-                content: content,
+                title: title || 'Untitled', content: content,
                 date: date || new Date().toISOString(),
                 mood: selectedMood || '📝',
                 tags: [...currentTags],
+                images: [...currentImages],
+                pinned: editingEntryId ? (entries.find(e => e.id === editingEntryId)?.pinned || false) : false,
                 wordCount: content.trim() ? content.trim().split(/\s+/).length : 0,
                 createdAt: editingEntryId ? (entries.find(e => e.id === editingEntryId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -462,73 +818,113 @@
         window.editEntry = function(id) {
             const entry = entries.find(e => e.id === id);
             if (!entry) return;
-
             editingEntryId = id;
             document.getElementById('entryTitle').value = entry.title === 'Untitled' ? '' : entry.title;
             document.getElementById('entryContent').value = entry.content;
             document.getElementById('entryDate').value = entry.date.slice(0, 16);
             selectedMood = entry.mood;
             currentTags = [...(entry.tags || [])];
-
+            currentImages = [...(entry.images || [])];
             document.querySelectorAll('.mood-option').forEach(m => {
                 m.classList.toggle('selected', m.dataset.mood === selectedMood);
             });
             renderTags();
+            renderImagePreviews();
             updateWordCount();
-
             navigateTo('new-entry');
         };
 
         window.deleteEntry = function(id) {
-            showModal('Delete Entry?', 'This entry will be permanently deleted.', () => {
-                entries = entries.filter(e => e.id !== id);
-                saveEntries();
-                showToast('Entry deleted', 'success');
-                navigateTo('dashboard');
+            showModal('Move to Trash?', 'This entry will be moved to trash. You can restore it within 30 days.', () => {
+                const idx = entries.findIndex(e => e.id === id);
+                if (idx !== -1) {
+                    const removed = entries.splice(idx, 1)[0];
+                    removed.deletedAt = new Date().toISOString();
+                    trash.unshift(removed);
+                    saveEntries();
+                    saveTrash();
+                    updateTrashBadge();
+                    showToast('Moved to trash', 'success');
+                    navigateTo('dashboard');
+                }
             });
         };
 
-        // ── Render Dashboard ──
+        // ═══════════════════════════════════════
+        // PIN ENTRIES
+        // ═══════════════════════════════════════
+        window.togglePin = function(id, e) {
+            e.stopPropagation();
+            const entry = entries.find(en => en.id === id);
+            if (entry) {
+                entry.pinned = !entry.pinned;
+                saveEntries();
+                renderDashboard();
+                showToast(entry.pinned ? 'Entry pinned' : 'Entry unpinned', 'success');
+            }
+        };
+
+        // ═══════════════════════════════════════
+        // RENDER DASHBOARD (with pinning)
+        // ═══════════════════════════════════════
         function renderDashboard() {
             const filtered = getFilteredEntries();
             const container = document.getElementById('entriesContainer');
-            const countEl = document.getElementById('entryCount');
-            countEl.textContent = entries.length + ' entr' + (entries.length !== 1 ? 'ies' : 'y');
-
+            document.getElementById('entryCount').textContent = entries.length + ' entr' + (entries.length !== 1 ? 'ies' : 'y');
             updateTagFilter();
 
             if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fa-solid fa-feather-pointed"></i>
-                        <h3>${entries.length === 0 ? 'Start Your Journey' : 'No entries found'}</h3>
-                        <p>${entries.length === 0 ? 'Write your first diary entry and capture your thoughts.' : 'Try adjusting your search or filters.'}</p>
-                        ${entries.length === 0 ? '<button class="btn btn-primary" onclick="navigateTo(\'new-entry\')"><i class="fa-solid fa-plus"></i> Write First Entry</button>' : ''}
-                    </div>`;
+                container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-feather-pointed"></i><h3>' + (entries.length === 0 ? 'Start Your Journey' : 'No entries found') + '</h3><p>' + (entries.length === 0 ? 'Write your first diary entry and capture your thoughts.' : 'Try adjusting your search or filters.') + '</p>' + (entries.length === 0 ? '<button class="btn btn-primary" onclick="navigateTo(\'new-entry\')"><i class="fa-solid fa-plus"></i> Write First Entry</button>' : '') + '</div>';
                 return;
             }
 
-            container.innerHTML = '<div class="entries-grid">' + filtered.map(entry => {
-                const date = new Date(entry.date);
-                const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-                const tags = (entry.tags || []).map(t => '<span class="tag">#' + t + '</span>').join('');
-                return `
-                    <div class="entry-card" onclick="navigateTo('detail', '${entry.id}')">
-                        <div class="entry-card-header">
-                            <span class="entry-card-mood">${entry.mood || '📝'}</span>
-                            <span class="entry-card-date">${dateStr}</span>
-                        </div>
-                        <div class="entry-card-title">${escapeHtml(entry.title)}</div>
-                        <div class="entry-card-preview">${escapeHtml(entry.content)}</div>
-                        <div class="entry-card-footer">
-                            <div class="entry-card-tags">${tags}</div>
-                            <span class="entry-card-wordcount">${entry.wordCount || 0} words</span>
-                        </div>
-                    </div>`;
-            }).join('') + '</div>';
+            const pinned = filtered.filter(e => e.pinned);
+            const unpinned = filtered.filter(e => !e.pinned);
+
+            let html = '';
+
+            if (pinned.length > 0) {
+                html += '<div class="pinned-section-label"><i class="fa-solid fa-thumbtack"></i> Pinned</div>';
+                html += '<div class="entries-grid">' + pinned.map(entry => renderEntryCard(entry)).join('') + '</div>';
+                if (unpinned.length > 0) html += '<hr class="pinned-divider"><div class="pinned-section-label"><i class="fa-solid fa-book"></i> All Entries</div>';
+            }
+
+            if (unpinned.length > 0) {
+                html += '<div class="entries-grid">' + unpinned.map(entry => renderEntryCard(entry)).join('') + '</div>';
+            }
+
+            container.innerHTML = html;
         }
 
-        // ── Render Detail ──
+        function renderEntryCard(entry) {
+            const date = new Date(entry.date);
+            const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+            const tags = (entry.tags || []).map(t => '<span class="tag">#' + t + '</span>').join('');
+            const images = (entry.images || []).length > 0 ?
+                '<div class="entry-card-images">' + entry.images.map(src => '<img src="' + src + '" alt="entry image">').join('') + '</div>' : '';
+            const readMin = Math.max(1, Math.ceil((entry.wordCount || 0) / 200));
+            const lockIcon = entry.locked ? ' <i class="fa-solid fa-lock" style="font-size:11px;color:var(--text-muted);"></i>' : '';
+
+            return '<div class="entry-card" onclick="navigateTo(\'detail\', \'' + entry.id + '\')">' +
+                '<div class="entry-card-header">' +
+                    '<span class="entry-card-mood">' + (entry.mood || '📝') + '</span>' +
+                    '<div style="display:flex;align-items:center;gap:6px;">' +
+                        '<button class="pin-btn ' + (entry.pinned ? 'pinned' : '') + '" onclick="togglePin(\'' + entry.id + '\', event)" title="' + (entry.pinned ? 'Unpin' : 'Pin') + '"><i class="fa-solid fa-thumbtack"></i></button>' +
+                        '<span class="entry-card-date">' + dateStr + '</span>' +
+                    '</div>' +
+                '</div>' +
+                images +
+                '<div class="entry-card-title">' + escapeHtml(entry.title) + lockIcon + '</div>' +
+                '<div class="entry-card-preview">' + escapeHtml(entry.content) + '</div>' +
+                '<div class="entry-card-footer">' +
+                    '<div class="entry-card-tags">' + tags + '</div>' +
+                    '<span class="entry-card-wordcount">' + (entry.wordCount || 0) + ' words · ' + readMin + ' min read</span>' +
+                '</div></div>';
+        }
+
+        // ═══════════════════════════════════════
+        // RENDER DETAIL (with images)
+        // ═══════════════════════════════════════
         function renderDetail(id) {
             const entry = entries.find(e => e.id === id);
             if (!entry) { navigateTo('dashboard'); return; }
@@ -537,33 +933,303 @@
             const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
             const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             const tags = (entry.tags || []).map(t => '<span class="tag">#' + t + '</span>').join('');
+            const readMin = Math.max(1, Math.ceil((entry.wordCount || 0) / 200));
+            const images = (entry.images || []).length > 0 ?
+                '<div class="detail-images">' + entry.images.map(src => '<img src="' + src + '" alt="entry image" onclick="openLightbox(\'' + src.substring(0, 50) + '\')">').join('') + '</div>' : '';
 
-            document.getElementById('detailContent').innerHTML = `
-                <div style="margin-bottom:8px;">
-                    <span class="detail-mood">${entry.mood || '📝'}</span>
-                </div>
-                <h1 class="detail-title">${escapeHtml(entry.title)}</h1>
-                <div class="detail-meta">
-                    <span class="detail-meta-item"><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
-                    <span class="detail-meta-item"><i class="fa-regular fa-clock"></i> ${timeStr}</span>
-                    <span class="detail-meta-item"><i class="fa-solid fa-font"></i> ${entry.wordCount || 0} words</span>
-                </div>
-                <div class="detail-content" style="margin-top:28px;">${escapeHtml(entry.content)}</div>
-                ${tags ? '<div class="detail-tags">' + tags + '</div>' : ''}
-                <div class="detail-actions">
-                    <button class="btn btn-secondary btn-sm" onclick="editEntry('${entry.id}')">
-                        <i class="fa-solid fa-pen"></i> Edit
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteEntry('${entry.id}')">
-                        <i class="fa-solid fa-trash-can"></i> Delete
-                    </button>
-                </div>`;
+            document.getElementById('detailContent').innerHTML =
+                '<div style="margin-bottom:8px;"><span class="detail-mood">' + (entry.mood || '📝') + '</span></div>' +
+                '<h1 class="detail-title">' + escapeHtml(entry.title) + '</h1>' +
+                '<div class="detail-meta">' +
+                    '<span class="detail-meta-item"><i class="fa-regular fa-calendar"></i> ' + dateStr + '</span>' +
+                    '<span class="detail-meta-item"><i class="fa-regular fa-clock"></i> ' + timeStr + '</span>' +
+                    '<span class="detail-meta-item"><i class="fa-solid fa-font"></i> ' + (entry.wordCount || 0) + ' words</span>' +
+                    '<span class="detail-meta-item"><i class="fa-solid fa-stopwatch"></i> ~' + readMin + ' min read</span>' +
+                '</div>' +
+                images +
+                '<div class="detail-content" style="margin-top:28px;">' + escapeHtml(entry.content) + '</div>' +
+                (tags ? '<div class="detail-tags">' + tags + '</div>' : '') +
+                '<div class="detail-actions">' +
+                    '<button class="btn btn-secondary btn-sm" onclick="editEntry(\'' + entry.id + '\')"><i class="fa-solid fa-pen"></i> Edit</button>' +
+                    '<button class="btn btn-danger btn-sm" onclick="deleteEntry(\'' + entry.id + '\')"><i class="fa-solid fa-trash-can"></i> Delete</button>' +
+                '</div>';
+
+            // Fix lightbox for images
+            setTimeout(() => {
+                document.querySelectorAll('.detail-images img').forEach(img => {
+                    img.onclick = function() { openLightbox(this.src); };
+                });
+            }, 50);
         }
 
-        // ── Search & Filter ──
-        window.handleSearch = function() {
-            renderDashboard();
+        // ═══════════════════════════════════════
+        // CALENDAR VIEW
+        // ═══════════════════════════════════════
+        function renderCalendar() {
+            if (!calendarYear) {
+                const now = new Date();
+                calendarYear = now.getFullYear();
+                calendarMonth = now.getMonth();
+            }
+            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            document.getElementById('calendarMonthLabel').textContent = months[calendarMonth] + ' ' + calendarYear;
+
+            const grid = document.getElementById('calendarGrid');
+            const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            let html = dayNames.map(d => '<div class="calendar-day-header">' + d + '</div>').join('');
+
+            const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+            const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+            const daysInPrev = new Date(calendarYear, calendarMonth, 0).getDate();
+            const today = new Date();
+
+            // Entry map for this month
+            const entryMap = {};
+            entries.forEach(e => {
+                const d = new Date(e.date);
+                if (d.getMonth() === calendarMonth && d.getFullYear() === calendarYear) {
+                    const day = d.getDate();
+                    if (!entryMap[day]) entryMap[day] = [];
+                    entryMap[day].push(e);
+                }
+            });
+
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                html += '<div class="calendar-day other-month"><span class="calendar-day-num">' + (daysInPrev - i) + '</span></div>';
+            }
+
+            // Current month days
+            for (let d = 1; d <= daysInMonth; d++) {
+                const isToday = d === today.getDate() && calendarMonth === today.getMonth() && calendarYear === today.getFullYear();
+                const dayEntries = entryMap[d] || [];
+                const hasEntries = dayEntries.length > 0;
+                const mood = hasEntries ? dayEntries[0].mood : '';
+                const dateKey = calendarYear + '-' + String(calendarMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+
+                html += '<div class="calendar-day' + (isToday ? ' today' : '') + (hasEntries ? ' has-entry' : '') + '" onclick="showCalendarDay(\'' + dateKey + '\')">' +
+                    '<span class="calendar-day-num">' + d + '</span>' +
+                    (hasEntries ? '<span class="calendar-day-mood">' + mood + '</span>' : '') +
+                    '</div>';
+            }
+
+            // Next month days
+            const totalCells = firstDay + daysInMonth;
+            const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let d = 1; d <= remaining; d++) {
+                html += '<div class="calendar-day other-month"><span class="calendar-day-num">' + d + '</span></div>';
+            }
+
+            grid.innerHTML = html;
+            document.getElementById('calendarDayPanel').classList.remove('show');
+        }
+
+        window.changeMonth = function(dir) {
+            calendarMonth += dir;
+            if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+            if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+            renderCalendar();
         };
+
+        window.showCalendarDay = function(dateKey) {
+            const dayEntries = entries.filter(e => e.date.startsWith(dateKey));
+            const panel = document.getElementById('calendarDayPanel');
+            const titleEl = document.getElementById('calendarDayTitle');
+            const entriesEl = document.getElementById('calendarDayEntries');
+
+            const d = new Date(dateKey + 'T12:00:00');
+            titleEl.textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+            if (dayEntries.length === 0) {
+                entriesEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No entries for this day.</p>';
+            } else {
+                entriesEl.innerHTML = dayEntries.map(e =>
+                    '<div class="calendar-entry-mini" onclick="navigateTo(\'detail\', \'' + e.id + '\')">' +
+                        '<span class="calendar-entry-mini-mood">' + (e.mood || '📝') + '</span>' +
+                        '<span class="calendar-entry-mini-title">' + escapeHtml(e.title) + '</span>' +
+                        '<span class="calendar-entry-mini-time">' + new Date(e.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + '</span>' +
+                    '</div>'
+                ).join('');
+            }
+
+            panel.classList.add('show');
+        };
+
+        // ═══════════════════════════════════════
+        // ANALYTICS
+        // ═══════════════════════════════════════
+        function renderAnalytics() {
+            // Stats cards
+            const totalWords = entries.reduce((s, e) => s + (e.wordCount || 0), 0);
+            const avgWords = entries.length ? Math.round(totalWords / entries.length) : 0;
+            const longestStreak = calculateLongestStreak();
+
+            const allTags = {};
+            entries.forEach(e => (e.tags || []).forEach(t => { allTags[t] = (allTags[t] || 0) + 1; }));
+            const topTag = Object.entries(allTags).sort((a, b) => b[1] - a[1])[0];
+
+            const readTime = Math.ceil(totalWords / 200);
+
+            document.getElementById('analyticsStats').innerHTML =
+                '<div class="stat-card"><div class="stat-card-icon"><i class="fa-solid fa-book-open"></i></div><div class="stat-card-value">' + entries.length + '</div><div class="stat-card-label">Total Entries</div></div>' +
+                '<div class="stat-card"><div class="stat-card-icon"><i class="fa-solid fa-font"></i></div><div class="stat-card-value">' + totalWords.toLocaleString() + '</div><div class="stat-card-label">Total Words</div></div>' +
+                '<div class="stat-card"><div class="stat-card-icon"><i class="fa-solid fa-chart-simple"></i></div><div class="stat-card-value">' + avgWords + '</div><div class="stat-card-label">Avg Words/Entry</div></div>' +
+                '<div class="stat-card"><div class="stat-card-icon"><i class="fa-solid fa-fire"></i></div><div class="stat-card-value">' + longestStreak + '</div><div class="stat-card-label">Longest Streak</div></div>' +
+                '<div class="stat-card"><div class="stat-card-icon"><i class="fa-solid fa-tag"></i></div><div class="stat-card-value">' + (topTag ? '#' + topTag[0] : '—') + '</div><div class="stat-card-label">Most Used Tag</div></div>' +
+                '<div class="stat-card"><div class="stat-card-icon"><i class="fa-solid fa-stopwatch"></i></div><div class="stat-card-value">' + readTime + 'm</div><div class="stat-card-label">Total Read Time</div></div>';
+
+            // Mood distribution
+            const moods = {};
+            entries.forEach(e => { const m = e.mood || '📝'; moods[m] = (moods[m] || 0) + 1; });
+            const maxMood = Math.max(...Object.values(moods), 1);
+            const sortedMoods = Object.entries(moods).sort((a, b) => b[1] - a[1]);
+
+            document.getElementById('moodChart').innerHTML = sortedMoods.map(([emoji, count]) =>
+                '<div class="mood-bar-row"><span class="mood-bar-emoji">' + emoji + '</span><div class="mood-bar-track"><div class="mood-bar-fill" style="width:' + (count / maxMood * 100) + '%"></div></div><span class="mood-bar-count">' + count + '</span></div>'
+            ).join('');
+
+            if (sortedMoods.length === 0) {
+                document.getElementById('moodChart').innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No mood data yet.</p>';
+            }
+
+            // Activity heatmap (last 30 days)
+            const heatmap = document.getElementById('activityHeatmap');
+            let heatHtml = '';
+            const now = new Date();
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date(now - i * 86400000);
+                const key = d.toLocaleDateString();
+                const count = entries.filter(e => new Date(e.date).toLocaleDateString() === key).length;
+                let level = '';
+                if (count === 1) level = 'level-1';
+                else if (count === 2) level = 'level-2';
+                else if (count >= 3) level = 'level-4';
+                heatHtml += '<div class="heatmap-cell ' + level + '" title="' + key + ': ' + count + ' entries"></div>';
+            }
+            heatmap.innerHTML = heatHtml;
+
+            // Tag cloud
+            const tagCloud = document.getElementById('tagCloud');
+            const sortedTags = Object.entries(allTags).sort((a, b) => b[1] - a[1]).slice(0, 15);
+            if (sortedTags.length === 0) {
+                tagCloud.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No tags yet.</p>';
+            } else {
+                tagCloud.innerHTML = sortedTags.map(([tag, count]) =>
+                    '<span class="tag-cloud-item">#' + tag + ' <small>(' + count + ')</small></span>'
+                ).join('');
+            }
+
+            // Mood timeline (recent 15 entries)
+            const timeline = document.getElementById('moodTimeline');
+            const recent = entries.slice(0, 15);
+            if (recent.length === 0) {
+                timeline.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No entries yet.</p>';
+            } else {
+                timeline.innerHTML = recent.map(e => {
+                    const d = new Date(e.date);
+                    return '<div class="mood-timeline-item"><span class="mood-timeline-emoji">' + (e.mood || '📝') + '</span><span class="mood-timeline-date">' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + '</span></div>';
+                }).join('');
+            }
+        }
+
+        function calculateLongestStreak() {
+            if (entries.length === 0) return 0;
+            const dates = [...new Set(entries.map(e => new Date(e.date).toLocaleDateString()))].sort((a, b) => new Date(a) - new Date(b));
+            let longest = 1, current = 1;
+            for (let i = 1; i < dates.length; i++) {
+                const prev = new Date(dates[i - 1]);
+                const curr = new Date(dates[i]);
+                const diff = (curr - prev) / 86400000;
+                if (diff === 1) { current++; longest = Math.max(longest, current); }
+                else { current = 1; }
+            }
+            return longest;
+        }
+
+        // ═══════════════════════════════════════
+        // TRASH
+        // ═══════════════════════════════════════
+        function renderTrash() {
+            // Auto-expire old trash (30 days)
+            const now = Date.now();
+            trash = trash.filter(e => {
+                if (!e.deletedAt) return true;
+                return (now - new Date(e.deletedAt).getTime()) < 30 * 86400000;
+            });
+            saveTrash();
+            updateTrashBadge();
+
+            const container = document.getElementById('trashContainer');
+            document.getElementById('trashSubtitle').textContent = trash.length + ' deleted entr' + (trash.length !== 1 ? 'ies' : 'y') + ' (kept for 30 days)';
+
+            if (trash.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-trash-can"></i><h3>Trash is empty</h3><p>Deleted entries will appear here.</p></div>';
+                return;
+            }
+
+            container.innerHTML = trash.map(e => {
+                const date = new Date(e.date);
+                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const daysLeft = e.deletedAt ? Math.max(0, 30 - Math.floor((Date.now() - new Date(e.deletedAt).getTime()) / 86400000)) : 30;
+                return '<div class="trash-entry-card">' +
+                    '<span class="trash-entry-mood">' + (e.mood || '📝') + '</span>' +
+                    '<div class="trash-entry-info"><div class="trash-entry-title">' + escapeHtml(e.title) + '</div><div class="trash-entry-date">' + dateStr + ' · ' + (e.wordCount || 0) + ' words · expires in ' + daysLeft + ' days</div></div>' +
+                    '<div class="trash-entry-actions">' +
+                        '<button class="btn btn-secondary btn-sm" onclick="restoreEntry(\'' + e.id + '\')"><i class="fa-solid fa-rotate-left"></i> Restore</button>' +
+                        '<button class="btn btn-danger btn-sm" onclick="permanentDelete(\'' + e.id + '\')"><i class="fa-solid fa-xmark"></i></button>' +
+                    '</div></div>';
+            }).join('');
+        }
+
+        window.restoreEntry = function(id) {
+            const idx = trash.findIndex(e => e.id === id);
+            if (idx !== -1) {
+                const entry = trash.splice(idx, 1)[0];
+                delete entry.deletedAt;
+                entries.unshift(entry);
+                saveEntries();
+                saveTrash();
+                updateTrashBadge();
+                renderTrash();
+                showToast('Entry restored', 'success');
+            }
+        };
+
+        window.permanentDelete = function(id) {
+            showModal('Permanently Delete?', 'This cannot be undone.', () => {
+                trash = trash.filter(e => e.id !== id);
+                saveTrash();
+                updateTrashBadge();
+                renderTrash();
+                showToast('Permanently deleted', 'success');
+            });
+        };
+
+        window.emptyTrash = function() {
+            if (trash.length === 0) { showToast('Trash is already empty', 'error'); return; }
+            showModal('Empty Trash?', 'All ' + trash.length + ' entries will be permanently deleted.', () => {
+                trash = [];
+                saveTrash();
+                updateTrashBadge();
+                renderTrash();
+                showToast('Trash emptied', 'success');
+            });
+        };
+
+        function updateTrashBadge() {
+            const badge = document.getElementById('trashBadge');
+            if (trash.length > 0) {
+                badge.style.display = 'inline';
+                badge.textContent = trash.length;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // ═══════════════════════════════════════
+        // SEARCH & FILTER
+        // ═══════════════════════════════════════
+        window.handleSearch = function() { renderDashboard(); };
 
         function getFilteredEntries() {
             let result = [...entries];
@@ -572,26 +1238,10 @@
             const dateFrom = document.getElementById('dateFrom').value;
             const dateTo = document.getElementById('dateTo').value;
 
-            if (query) {
-                result = result.filter(e =>
-                    e.title.toLowerCase().includes(query) ||
-                    e.content.toLowerCase().includes(query)
-                );
-            }
-
-            if (tagFilter) {
-                result = result.filter(e => (e.tags || []).includes(tagFilter));
-            }
-
-            if (dateFrom) {
-                result = result.filter(e => e.date >= dateFrom);
-            }
-
-            if (dateTo) {
-                const to = dateTo + 'T23:59';
-                result = result.filter(e => e.date <= to);
-            }
-
+            if (query) result = result.filter(e => e.title.toLowerCase().includes(query) || e.content.toLowerCase().includes(query));
+            if (tagFilter) result = result.filter(e => (e.tags || []).includes(tagFilter));
+            if (dateFrom) result = result.filter(e => e.date >= dateFrom);
+            if (dateTo) result = result.filter(e => e.date <= dateTo + 'T23:59');
             return result;
         }
 
@@ -618,37 +1268,27 @@
             renderDashboard();
         };
 
-        // ── Streak ──
+        // ═══════════════════════════════════════
+        // STREAK
+        // ═══════════════════════════════════════
         function calculateStreak() {
-            if (entries.length === 0) {
-                document.getElementById('streakCount').textContent = '0';
-                return;
-            }
-            const dates = [...new Set(entries.map(e => new Date(e.date).toLocaleDateString()))].sort((a,b) => new Date(b) - new Date(a));
+            if (entries.length === 0) { document.getElementById('streakCount').textContent = '0'; return; }
+            const dates = [...new Set(entries.map(e => new Date(e.date).toLocaleDateString()))].sort((a, b) => new Date(b) - new Date(a));
             let streak = 0;
-            let checkDate = new Date();
-            checkDate.setHours(0,0,0,0);
-
+            let checkDate = new Date(); checkDate.setHours(0, 0, 0, 0);
             const today = checkDate.toLocaleDateString();
             const yesterday = new Date(checkDate - 86400000).toLocaleDateString();
-
-            if (dates[0] !== today && dates[0] !== yesterday) {
-                document.getElementById('streakCount').textContent = '0';
-                return;
-            }
-
+            if (dates[0] !== today && dates[0] !== yesterday) { document.getElementById('streakCount').textContent = '0'; return; }
             for (let i = 0; i < dates.length; i++) {
                 const expected = new Date(checkDate - i * 86400000).toLocaleDateString();
-                if (dates.includes(expected)) {
-                    streak++;
-                } else {
-                    break;
-                }
+                if (dates.includes(expected)) streak++; else break;
             }
             document.getElementById('streakCount').textContent = streak;
         }
 
-        // ── Theme ──
+        // ═══════════════════════════════════════
+        // THEME
+        // ═══════════════════════════════════════
         function loadTheme() {
             const saved = localStorage.getItem(THEME_KEY);
             if (saved === 'dark') {
@@ -666,7 +1306,9 @@
             document.getElementById('themeLabel').textContent = isDark ? 'Dark Mode' : 'Light Mode';
         };
 
-        // ── Wallpaper ──
+        // ═══════════════════════════════════════
+        // WALLPAPER
+        // ═══════════════════════════════════════
         const wallpaperPresets = [
             { id: 'none', label: 'None', value: '' },
             { id: 'sunset', label: 'Sunset', value: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fdfcfb 100%)' },
@@ -682,50 +1324,26 @@
         ];
 
         function loadWallpaper() {
-            try {
-                const saved = localStorage.getItem(WALLPAPER_KEY);
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    applyWallpaper(data);
-                }
-            } catch {}
+            try { const saved = localStorage.getItem(WALLPAPER_KEY); if (saved) applyWallpaper(JSON.parse(saved)); } catch {}
         }
 
         function applyWallpaper(data) {
             const main = document.querySelector('.main-content');
-            if (!data || !data.value) {
-                main.style.backgroundImage = '';
-                main.style.backgroundSize = '';
-                return;
-            }
+            if (!data || !data.value) { main.style.backgroundImage = ''; main.style.backgroundSize = ''; return; }
             main.style.backgroundImage = data.value;
             main.style.backgroundSize = data.bgSize || '';
         }
 
-        window.openWallpaperModal = function() {
-            renderWallpaperGrid();
-            document.getElementById('wallpaperModal').classList.add('show');
-        };
-
-        window.closeWallpaperModal = function() {
-            document.getElementById('wallpaperModal').classList.remove('show');
-        };
+        window.openWallpaperModal = function() { renderWallpaperGrid(); document.getElementById('wallpaperModal').classList.add('show'); };
+        window.closeWallpaperModal = function() { document.getElementById('wallpaperModal').classList.remove('show'); };
 
         function renderWallpaperGrid() {
             const grid = document.getElementById('wallpaperGrid');
             let currentId = 'none';
-            try {
-                const saved = localStorage.getItem(WALLPAPER_KEY);
-                if (saved) currentId = JSON.parse(saved).id || 'none';
-            } catch {}
-
+            try { const saved = localStorage.getItem(WALLPAPER_KEY); if (saved) currentId = JSON.parse(saved).id || 'none'; } catch {}
             grid.innerHTML = wallpaperPresets.map(p => {
                 const bg = p.value ? p.value : 'var(--bg-card)';
-                return `<div class="wallpaper-thumb ${p.id === currentId ? 'selected' : ''}" 
-                    style="background:${bg};${p.bgSize ? 'background-size:' + p.bgSize : ''}" 
-                    onclick="selectWallpaper('${p.id}')">
-                    <div class="wallpaper-thumb-label">${p.label}</div>
-                </div>`;
+                return '<div class="wallpaper-thumb ' + (p.id === currentId ? 'selected' : '') + '" style="background:' + bg + ';' + (p.bgSize ? 'background-size:' + p.bgSize : '') + '" onclick="selectWallpaper(\'' + p.id + '\')"><div class="wallpaper-thumb-label">' + p.label + '</div></div>';
             }).join('');
         }
 
@@ -733,13 +1351,8 @@
             const preset = wallpaperPresets.find(p => p.id === id);
             if (!preset) return;
             const data = { id: preset.id, value: preset.value, bgSize: preset.bgSize || '' };
-            if (preset.id === 'none') {
-                localStorage.removeItem(WALLPAPER_KEY);
-                applyWallpaper(null);
-            } else {
-                localStorage.setItem(WALLPAPER_KEY, JSON.stringify(data));
-                applyWallpaper(data);
-            }
+            if (preset.id === 'none') { localStorage.removeItem(WALLPAPER_KEY); applyWallpaper(null); }
+            else { localStorage.setItem(WALLPAPER_KEY, JSON.stringify(data)); applyWallpaper(data); }
             renderWallpaperGrid();
             showToast(preset.id === 'none' ? 'Wallpaper removed' : 'Wallpaper set!', 'success');
         };
@@ -747,14 +1360,10 @@
         window.handleWallpaperUpload = function(event) {
             const file = event.target.files[0];
             if (!file) return;
-            if (file.size > 512 * 1024) {
-                showToast('Image must be under 500KB', 'error');
-                event.target.value = '';
-                return;
-            }
+            if (file.size > 512 * 1024) { showToast('Image must be under 500KB', 'error'); event.target.value = ''; return; }
             const reader = new FileReader();
             reader.onload = function(e) {
-                const data = { id: 'custom', value: `url(${e.target.result})`, bgSize: 'cover' };
+                const data = { id: 'custom', value: 'url(' + e.target.result + ')', bgSize: 'cover' };
                 localStorage.setItem(WALLPAPER_KEY, JSON.stringify(data));
                 applyWallpaper(data);
                 renderWallpaperGrid();
@@ -764,64 +1373,49 @@
             event.target.value = '';
         };
 
-        window.clearWallpaper = function() {
-            localStorage.removeItem(WALLPAPER_KEY);
-            applyWallpaper(null);
-            renderWallpaperGrid();
-            showToast('Wallpaper removed', 'success');
-        };
+        window.clearWallpaper = function() { localStorage.removeItem(WALLPAPER_KEY); applyWallpaper(null); renderWallpaperGrid(); showToast('Wallpaper removed', 'success'); };
 
-        // ── Export ──
-        window.toggleExportMenu = function() {
-            document.getElementById('exportMenu').classList.toggle('show');
-        };
+        // ═══════════════════════════════════════
+        // EXPORT
+        // ═══════════════════════════════════════
+        window.toggleExportMenu = function() { document.getElementById('exportMenu').classList.toggle('show'); };
 
         window.exportEntries = function(format) {
-            if (entries.length === 0) {
-                showToast('No entries to export', 'error');
-                return;
-            }
-
+            if (entries.length === 0) { showToast('No entries to export', 'error'); return; }
             let content, filename, type;
-
             if (format === 'txt') {
                 content = entries.map(e => {
                     const d = new Date(e.date).toLocaleString();
-                    return `${'═'.repeat(50)}\n${e.mood || ''} ${e.title}\nDate: ${d}\nTags: ${(e.tags||[]).map(t=>'#'+t).join(' ')}\nWord Count: ${e.wordCount||0}\n${'─'.repeat(50)}\n\n${e.content}\n`;
+                    return '═'.repeat(50) + '\n' + (e.mood || '') + ' ' + e.title + '\nDate: ' + d + '\nTags: ' + (e.tags || []).map(t => '#' + t).join(' ') + '\nWord Count: ' + (e.wordCount || 0) + '\n' + '─'.repeat(50) + '\n\n' + e.content + '\n';
                 }).join('\n');
-                filename = 'diary-export.txt';
-                type = 'text/plain';
+                filename = 'diary-export.txt'; type = 'text/plain';
             } else {
-                content = JSON.stringify(entries, null, 2);
-                filename = 'diary-export.json';
-                type = 'application/json';
+                content = JSON.stringify(entries.map(e => ({...e, images: (e.images || []).length + ' images attached'})), null, 2);
+                filename = 'diary-export.json'; type = 'application/json';
             }
-
             const blob = new Blob([content], { type });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
+            const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
             URL.revokeObjectURL(url);
             document.getElementById('exportMenu').classList.remove('show');
             showToast('Exported as ' + format.toUpperCase(), 'success');
         };
 
-        // Close export menu on outside click
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.export-dropdown')) {
-                document.getElementById('exportMenu').classList.remove('show');
-            }
+            if (!e.target.closest('.export-dropdown')) document.getElementById('exportMenu').classList.remove('show');
         });
 
-        // ── Sidebar ──
+        // ═══════════════════════════════════════
+        // SIDEBAR
+        // ═══════════════════════════════════════
         window.toggleSidebar = function() {
             document.getElementById('sidebar').classList.toggle('open');
             document.getElementById('sidebarOverlay').classList.toggle('show');
         };
 
-        // ── Modal ──
+        // ═══════════════════════════════════════
+        // MODALS
+        // ═══════════════════════════════════════
         function showModal(title, message, confirmFn) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalMessage').textContent = message;
@@ -829,17 +1423,41 @@
             modalConfirmFn = confirmFn;
         }
 
-        window.closeModal = function() {
-            document.getElementById('confirmModal').classList.remove('show');
-            modalConfirmFn = null;
-        };
+        window.closeModal = function() { document.getElementById('confirmModal').classList.remove('show'); modalConfirmFn = null; };
+        window.modalConfirmAction = function() { if (modalConfirmFn) modalConfirmFn(); closeModal(); };
 
-        window.modalConfirmAction = function() {
-            if (modalConfirmFn) modalConfirmFn();
-            closeModal();
-        };
+        // ═══════════════════════════════════════
+        // KEYBOARD SHORTCUTS
+        // ═══════════════════════════════════════
+        window.openShortcutsModal = function() { document.getElementById('shortcutsModal').classList.add('show'); };
+        window.closeShortcutsModal = function() { document.getElementById('shortcutsModal').classList.remove('show'); };
 
-        // ── Toast ──
+        document.addEventListener('keydown', function(e) {
+            const tag = e.target.tagName.toLowerCase();
+            const isInput = tag === 'input' || tag === 'textarea' || tag === 'select';
+
+            if (e.key === 'Escape') {
+                if (document.getElementById('lightbox').classList.contains('show')) { closeLightbox(); return; }
+                if (document.getElementById('shortcutsModal').classList.contains('show')) { closeShortcutsModal(); return; }
+                if (document.getElementById('confirmModal').classList.contains('show')) { closeModal(); return; }
+                if (document.getElementById('wallpaperModal').classList.contains('show')) { closeWallpaperModal(); return; }
+                const activePage = document.querySelector('.page.active');
+                if (activePage && activePage.id !== 'page-dashboard') { navigateTo('dashboard'); return; }
+            }
+
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'n' || e.key === 'N') { e.preventDefault(); navigateTo('new-entry'); }
+                else if (e.key === 'k' || e.key === 'K') { e.preventDefault(); if (!isInput) document.getElementById('searchInput').focus(); }
+                else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); navigateTo('dashboard'); }
+                else if (e.key === 'l' || e.key === 'L') { e.preventDefault(); navigateTo('calendar'); }
+                else if ((e.key === 'a' || e.key === 'A') && !isInput) { e.preventDefault(); navigateTo('analytics'); }
+                else if (e.key === 'd' || e.key === 'D') { e.preventDefault(); toggleTheme(); }
+            }
+        });
+
+        // ═══════════════════════════════════════
+        // TOAST
+        // ═══════════════════════════════════════
         function showToast(message, type) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -849,12 +1467,31 @@
             setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        // ── Helpers ──
+        // ═══════════════════════════════════════
+        // HELPERS
+        // ═══════════════════════════════════════
         function escapeHtml(str) {
             if (!str) return '';
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
+        }
+
+        // ═══════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════
+        function init() {
+            loadTheme();
+            loadWallpaper();
+            setDefaultDate();
+            loadDraft();
+            renderDashboard();
+            renderPromptBanner();
+            renderWritingTip();
+            calculateStreak();
+            updateTrashBadge();
+            window.addEventListener('hashchange', handleHash);
+            handleHash();
         }
 
         init();
