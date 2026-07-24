@@ -228,7 +228,7 @@ body {
 }
 
 .btn-primary:hover {
-    background: #6680c9;
+    background: var(--accent-hover);
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
 }
@@ -453,6 +453,14 @@ body {
 .empty-state p {
     font-size: 14px;
     margin-bottom: 24px;
+}
+
+.empty-state .btn {
+    display: inline-flex;
+    margin: 0 auto;
+    padding: 12px 28px;
+    border-radius: var(--radius-md);
+    font-size: 15px;
 }
 
 /* Entry Form */
@@ -733,6 +741,116 @@ body {
 .theme-toggle i {
     width: 20px;
     text-align: center;
+}
+
+/* Auto Schedule */
+.auto-schedule-wrap {
+    padding: 8px 12px 4px;
+    display: none;
+}
+
+.auto-schedule-wrap.show {
+    display: block;
+}
+
+.auto-schedule-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.auto-schedule-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    min-width: 42px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.auto-schedule-input {
+    flex: 1;
+    padding: 6px 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    cursor: pointer;
+}
+
+.auto-schedule-input:focus {
+    border-color: var(--border-focus);
+}
+
+.auto-schedule-status {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 4px 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.auto-schedule-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+}
+
+.auto-schedule-dot.inactive {
+    background: var(--text-muted);
+}
+
+.auto-schedule-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    padding: 2px 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.auto-schedule-toggle:hover {
+    color: var(--accent);
+}
+
+.auto-schedule-switch {
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--border);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.auto-schedule-switch.active {
+    background: var(--accent);
+}
+
+.auto-schedule-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.auto-schedule-switch.active::after {
+    transform: translateX(16px);
 }
 
 /* Export Dropdown */
@@ -1902,6 +2020,271 @@ body {
 
 .lock-pin-input input:focus {
     border-color: var(--accent);
+}
+
+/* ═══════════════════════════════════════════════════
+   TUTORIAL / ONBOARDING
+   ═══════════════════════════════════════════════════ */
+.tutorial-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10001;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.tutorial-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.tutorial-highlight {
+    position: absolute;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.6);
+    z-index: 10002;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.tutorial-highlight::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: calc(var(--radius-sm) + 4px);
+    border: 2px solid var(--accent);
+    animation: tutorialPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes tutorialPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.01); }
+}
+
+.tutorial-tooltip {
+    position: absolute;
+    z-index: 10003;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px 28px;
+    max-width: 360px;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.tutorial-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tutorial-tooltip::before {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--bg-card);
+    border-left: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    transform: rotate(45deg);
+}
+
+.tutorial-tooltip.arrow-top::before {
+    top: -7px;
+    left: 24px;
+}
+
+.tutorial-tooltip.arrow-bottom::before {
+    bottom: -7px;
+    left: 24px;
+    transform: rotate(225deg);
+}
+
+.tutorial-tooltip.arrow-right::before {
+    top: 24px;
+    right: -7px;
+    transform: rotate(135deg);
+}
+
+.tutorial-step-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.tutorial-step-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.tutorial-step-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.tutorial-step-desc strong {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.tutorial-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tutorial-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.tutorial-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s;
+}
+
+.tutorial-dot.active {
+    background: var(--accent);
+    width: 20px;
+    border-radius: 4px;
+}
+
+.tutorial-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.tutorial-btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+}
+
+.tutorial-btn-next {
+    background: var(--accent);
+    color: #fff;
+}
+
+.tutorial-btn-next:hover {
+    background: var(--accent-hover);
+}
+
+.tutorial-btn-skip {
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.tutorial-btn-skip:hover {
+    color: var(--text-secondary);
+}
+
+.tutorial-welcome {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    z-index: 10004;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 48px 40px;
+    max-width: 440px;
+    width: 90%;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.tutorial-welcome.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+}
+
+.tutorial-welcome-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+}
+
+.tutorial-welcome h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.tutorial-welcome p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+
+.tutorial-welcome-btns {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.tutorial-welcome-btn {
+    padding: 12px 28px;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+}
+
+.tutorial-start-btn {
+    background: var(--accent);
+    color: #fff;
+}
+
+.tutorial-start-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.tutorial-skip-btn {
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.tutorial-skip-btn:hover {
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .tutorial-tooltip {
+        max-width: 280px;
+        padding: 18px 20px;
+    }
+    .tutorial-welcome {
+        padding: 32px 24px;
+    }
 }
 
 /* ═══════════════════════════════════════════════════

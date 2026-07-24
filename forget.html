@@ -32,19 +32,25 @@
             
         }
         button{
-            background-color: rgb(211, 67, 115);
-            color: rgb(241, 235, 239);
+            background-color: #a91f80;
+            color: #fff;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 20px;
             cursor: pointer;
-            border-radius: 5px;
-            transition: 0.5s;
-            padding: 10px 15px;
-            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
             width: 100%;
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         button:hover{
-            background-color: rgb(218, 119, 188)
+            background-color: #8a1a69;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(169,31,128,0.3);
         }
         .form-box{
             border: 1px solid #eae1e7;
@@ -125,7 +131,7 @@
             <p class="verify">Verify You're Not A Robot</p>
             <div class="g-recaptcha" data-sitekey="6LdqZeIrAAAAAJbUi-gZ5mIVCUAxaAau7seoE9xL"></div>
             <br>
-            <button type="submit" style="width: 17%; padding: 10px 15px ;position: relative;" onclick="showForm('verify-form')">Submit</button>
+            <button type="submit" onclick="showForm('verify-form')">Submit</button>
        
         </div>
         

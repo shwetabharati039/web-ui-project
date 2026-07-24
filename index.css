@@ -47,25 +47,28 @@ select{
     margin-bottom:20px;
     
     }
-    button{
-        width:100%;
-        padding:12px;
-        background:#a91f80;
-        border-radius: 6px;
-        border:none;
-        cursor:pointer;
-        font-size:16px;
-        color:#fff;
-        font-weight:500;
-        margin-bottom:20px;
-        transition: 0.5s;
-
-        
-    }
-    button:hover{
-        background:#6680c9;
-        
-    }
+button{
+    width:100%;
+    padding:12px 20px;
+    background:#a91f80;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    font-size:16px;
+    color:#fff;
+    font-weight:500;
+    margin-bottom:20px;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+button:hover{
+    background:#8a1a69;
+    transform:translateY(-1px);
+    box-shadow:0 4px 12px rgba(169,31,128,0.3);
+}
     p{
         font-size: 14.5px;
         text-align: center;
