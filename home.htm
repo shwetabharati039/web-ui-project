@@ -97,6 +97,9 @@
                 <button class="nav-item" onclick="openWallpaperModal()">
                     <i class="fa-solid fa-image"></i> Wallpaper
                 </button>
+                <button class="nav-item" onclick="togglePaperThemeDropdown()">
+                    <i class="fa-solid fa-file-lines"></i> Paper Style
+                </button>
                 <button class="theme-toggle" onclick="toggleTheme()">
                     <i class="fa-solid fa-moon" id="themeIcon"></i>
                     <span id="themeLabel">Dark Mode</span>
@@ -233,6 +236,30 @@
                                 <div class="mood-option" data-mood="🎉" onclick="selectMood(this)">🎉</div>
                                 <div class="mood-option" data-mood="💔" onclick="selectMood(this)">💔</div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Paper Style</label>
+                        <div class="paper-theme-selector" id="paperThemeSelector">
+                            <button class="paper-theme-option" data-paper="blank" onclick="setPaperTheme('blank')">
+                                <i class="fa-solid fa-file"></i> Blank
+                            </button>
+                            <button class="paper-theme-option" data-paper="lined" onclick="setPaperTheme('lined')">
+                                <i class="fa-solid fa-bars"></i> Lined
+                            </button>
+                            <button class="paper-theme-option" data-paper="graph" onclick="setPaperTheme('graph')">
+                                <i class="fa-solid fa-border-all"></i> Graph
+                            </button>
+                            <button class="paper-theme-option" data-paper="dotted" onclick="setPaperTheme('dotted')">
+                                <i class="fa-solid fa-braille"></i> Dotted
+                            </button>
+                            <button class="paper-theme-option" data-paper="vintage" onclick="setPaperTheme('vintage')">
+                                <i class="fa-solid fa-scroll"></i> Vintage
+                            </button>
+                            <button class="paper-theme-option" data-paper="sticky" onclick="setPaperTheme('sticky')">
+                                <i class="fa-solid fa-note-sticky"></i> Sticky
+                            </button>
                         </div>
                     </div>
 
@@ -406,11 +433,13 @@
         const TRASH_KEY = 'diary_trash';
         const PIN_KEY = 'diary_pins';
         const IMAGES_KEY = 'diary_images';
+        const PAPER_THEME_KEY = 'diary_paper_theme';
 
         let entries = loadEntries();
         let trash = loadTrash();
         let currentTags = [];
         let currentImages = [];
+        let currentPaperTheme = 'lined';
         let autoSaveTimer = null;
         let modalConfirmFn = null;
         let editingEntryId = null;
@@ -664,6 +693,7 @@
                 window.location.hash = '';
             } else if (page === 'new-entry') {
                 if (!editingEntryId && !param) resetForm();
+                setTimeout(applyPaperTheme, 10);
                 window.location.hash = 'new';
             } else if (page === 'detail' && param) {
                 renderDetail(param);
@@ -714,6 +744,7 @@
             renderImagePreviews();
             setDefaultDate();
             updateWordCount();
+            setTimeout(applyPaperTheme, 10);
         }
 
         window.selectMood = function(el) {
@@ -996,7 +1027,7 @@
                     '<span class="detail-meta-item"><i class="fa-solid fa-stopwatch"></i> ~' + readMin + ' min read</span>' +
                 '</div>' +
                 images +
-                '<div class="detail-content" style="margin-top:28px;">' + escapeHtml(entry.content) + '</div>' +
+                '<div class="detail-content detail-paper-wrap paper-' + currentPaperTheme + '" style="margin-top:28px;">' + escapeHtml(entry.content) + '</div>' +
                 (tags ? '<div class="detail-tags">' + tags + '</div>' : '') +
                 '<div class="detail-actions">' +
                     '<button class="btn btn-secondary btn-sm" onclick="editEntry(\'' + entry.id + '\')"><i class="fa-solid fa-pen"></i> Edit</button>' +
@@ -1532,6 +1563,37 @@
         window.clearWallpaper = function() { localStorage.removeItem(WALLPAPER_KEY); applyWallpaper(null); renderWallpaperGrid(); showToast('Wallpaper removed', 'success'); };
 
         // ═══════════════════════════════════════
+        // PAPER THEME
+        // ═══════════════════════════════════════
+        function loadPaperTheme() {
+            const saved = localStorage.getItem(PAPER_THEME_KEY);
+            if (saved) currentPaperTheme = saved;
+            applyPaperTheme();
+        }
+
+        function applyPaperTheme() {
+            const textarea = document.getElementById('entryContent');
+            const paperOptions = document.querySelectorAll('.paper-theme-option');
+            if (textarea) {
+                textarea.className = 'form-textarea' + (currentPaperTheme !== 'blank' ? ' paper-' + currentPaperTheme : '');
+            }
+            paperOptions.forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.paper === currentPaperTheme);
+            });
+        }
+
+        window.setPaperTheme = function(theme) {
+            currentPaperTheme = theme;
+            localStorage.setItem(PAPER_THEME_KEY, theme);
+            applyPaperTheme();
+            showToast('Paper style: ' + theme.charAt(0).toUpperCase() + theme.slice(1), 'success');
+        };
+
+        window.togglePaperThemeDropdown = function() {
+            navigateTo('new-entry');
+        };
+
+        // ═══════════════════════════════════════
         // EXPORT
         // ═══════════════════════════════════════
         window.toggleExportMenu = function() { document.getElementById('exportMenu').classList.toggle('show'); };
@@ -1835,6 +1897,7 @@
         function init() {
             loadTheme();
             loadWallpaper();
+            loadPaperTheme();
             setDefaultDate();
             loadDraft();
             renderDashboard();
