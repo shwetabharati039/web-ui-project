@@ -6,6 +6,7 @@
     <title>Index — Digital Diary</title>
     <link rel="stylesheet" href="diary.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -100,6 +101,45 @@
                 <button class="nav-item" onclick="togglePaperThemeDropdown()">
                     <i class="fa-solid fa-file-lines"></i> Paper Style
                 </button>
+                <button class="nav-item" onclick="toggleFontPicker()">
+                    <i class="fa-solid fa-font"></i> Writing Font
+                </button>
+                <div class="font-picker-panel" id="fontPickerPanel">
+                    <div class="font-picker-option active" data-font="default" onclick="setWritingFont('default')">
+                        <span style="font-family:'Inter',sans-serif;">Aa</span> Sans-serif
+                    </div>
+                    <div class="font-picker-option" data-font="serif" onclick="setWritingFont('serif')">
+                        <span style="font-family:'Playfair Display',serif;">Aa</span> Serif
+                    </div>
+                    <div class="font-picker-option" data-font="handwriting" onclick="setWritingFont('handwriting')">
+                        <span style="font-family:'Caveat',cursive;">Aa</span> Handwriting
+                    </div>
+                    <div class="font-picker-option" data-font="georgia" onclick="setWritingFont('georgia')">
+                        <span style="font-family:'Georgia',serif;">Aa</span> Georgia
+                    </div>
+                </div>
+                <button class="nav-item" onclick="toggleReminderPanel()">
+                    <i class="fa-solid fa-bell"></i> Reminders
+                </button>
+                <div class="reminder-panel" id="reminderPanel">
+                    <div class="reminder-row">
+                        <button class="reminder-toggle-btn" onclick="toggleReminder()">
+                            <div class="reminder-switch" id="reminderSwitch"></div>
+                            Daily Reminder
+                        </button>
+                    </div>
+                    <div class="reminder-row">
+                        <span class="reminder-label">Time</span>
+                        <input type="time" class="reminder-input" id="reminderTime" value="20:00" onchange="updateReminderTime()">
+                    </div>
+                    <div class="reminder-row">
+                        <input type="text" class="reminder-input reminder-msg-input" id="reminderMessage" placeholder="Time to write!" onchange="updateReminderMessage()">
+                    </div>
+                    <div class="reminder-status" id="reminderStatus">
+                        <div class="reminder-dot inactive"></div>
+                        <span>Off — click to enable</span>
+                    </div>
+                </div>
                 <button class="theme-toggle" onclick="toggleTheme()">
                     <i class="fa-solid fa-moon" id="themeIcon"></i>
                     <span id="themeLabel">Dark Mode</span>
@@ -434,6 +474,8 @@
         const PIN_KEY = 'diary_pins';
         const IMAGES_KEY = 'diary_images';
         const PAPER_THEME_KEY = 'diary_paper_theme';
+        const FONT_KEY = 'diary_writing_font';
+        const REMINDER_KEY = 'diary_reminder';
 
         let entries = loadEntries();
         let trash = loadTrash();
@@ -1017,7 +1059,14 @@
             const images = (entry.images || []).length > 0 ?
                 '<div class="detail-images">' + entry.images.map(src => '<img src="' + src + '" alt="entry image" onclick="openLightbox(\'' + src.substring(0, 50) + '\')">').join('') + '</div>' : '';
 
-            document.getElementById('detailContent').innerHTML =
+                const fontMap = {
+                    'default': "'Inter', sans-serif",
+                    'serif': "'Playfair Display', Georgia, serif",
+                    'handwriting': "'Caveat', cursive",
+                    'georgia': "'Georgia', 'Times New Roman', serif"
+                };
+                const detailFontStyle = currentFont !== 'default' ? ' font-family:' + fontMap[currentFont] + ';' : '';
+                document.getElementById('detailContent').innerHTML =
                 '<div style="margin-bottom:8px;"><span class="detail-mood">' + (entry.mood || '📝') + '</span></div>' +
                 '<h1 class="detail-title">' + escapeHtml(entry.title) + '</h1>' +
                 '<div class="detail-meta">' +
@@ -1027,7 +1076,7 @@
                     '<span class="detail-meta-item"><i class="fa-solid fa-stopwatch"></i> ~' + readMin + ' min read</span>' +
                 '</div>' +
                 images +
-                '<div class="detail-content detail-paper-wrap paper-' + currentPaperTheme + '" style="margin-top:28px;">' + escapeHtml(entry.content) + '</div>' +
+                '<div class="detail-content detail-paper-wrap paper-' + currentPaperTheme + '" style="margin-top:28px;' + detailFontStyle + '">' + escapeHtml(entry.content) + '</div>' +
                 (tags ? '<div class="detail-tags">' + tags + '</div>' : '') +
                 '<div class="detail-actions">' +
                     '<button class="btn btn-secondary btn-sm" onclick="editEntry(\'' + entry.id + '\')"><i class="fa-solid fa-pen"></i> Edit</button>' +
@@ -1580,6 +1629,7 @@
             paperOptions.forEach(opt => {
                 opt.classList.toggle('active', opt.dataset.paper === currentPaperTheme);
             });
+            applyFont();
         }
 
         window.setPaperTheme = function(theme) {
@@ -1592,6 +1642,154 @@
         window.togglePaperThemeDropdown = function() {
             navigateTo('new-entry');
         };
+
+        // ═══════════════════════════════════════
+        // WRITING FONT PICKER
+        // ═══════════════════════════════════════
+        let currentFont = 'default';
+        let reminderInterval = null;
+
+        function loadFont() {
+            const saved = localStorage.getItem(FONT_KEY);
+            if (saved) currentFont = saved;
+            applyFont();
+        }
+
+        function applyFont() {
+            const textarea = document.getElementById('entryContent');
+            const fontMap = {
+                'default': "'Inter', sans-serif",
+                'serif': "'Playfair Display', Georgia, serif",
+                'handwriting': "'Caveat', cursive",
+                'georgia': "'Georgia', 'Times New Roman', serif"
+            };
+            if (textarea && currentFont !== 'default') {
+                textarea.style.fontFamily = fontMap[currentFont] || fontMap['default'];
+            } else if (textarea) {
+                textarea.style.fontFamily = '';
+            }
+            document.querySelectorAll('.font-picker-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.font === currentFont);
+            });
+        }
+
+        window.setWritingFont = function(font) {
+            currentFont = font;
+            localStorage.setItem(FONT_KEY, font);
+            applyFont();
+            const labels = { 'default': 'Sans-serif', 'serif': 'Serif', 'handwriting': 'Handwriting', 'georgia': 'Georgia' };
+            showToast('Font: ' + (labels[font] || font), 'success');
+        };
+
+        window.toggleFontPicker = function() {
+            document.getElementById('fontPickerPanel').classList.toggle('show');
+        };
+
+        // ═══════════════════════════════════════
+        // DAILY REMINDERS
+        // ═══════════════════════════════════════
+        function loadReminder() {
+            try {
+                const r = JSON.parse(localStorage.getItem(REMINDER_KEY));
+                return r || { enabled: false, time: '20:00', message: 'Time to write!' };
+            } catch { return { enabled: false, time: '20:00', message: 'Time to write!' }; }
+        }
+
+        function saveReminder(r) { localStorage.setItem(REMINDER_KEY, JSON.stringify(r)); }
+
+        function reminderTimeToMinutes(t) {
+            const [h, m] = t.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        let lastReminderFired = '';
+
+        function checkReminder() {
+            const reminder = loadReminder();
+            if (!reminder.enabled) return;
+            const now = new Date();
+            const currentMin = now.getHours() * 60 + now.getMinutes();
+            const targetMin = reminderTimeToMinutes(reminder.time);
+            const todayKey = now.toDateString();
+            if (currentMin === targetMin && lastReminderFired !== todayKey) {
+                lastReminderFired = todayKey;
+                if (Notification.permission === 'granted') {
+                    new Notification('Index — Daily Reminder', {
+                        body: reminder.message || 'Time to write!',
+                        icon: '📖'
+                    });
+                }
+            }
+        }
+
+        function startReminderCheck() {
+            if (reminderInterval) clearInterval(reminderInterval);
+            reminderInterval = setInterval(checkReminder, 30000);
+        }
+
+        window.toggleReminderPanel = function() {
+            document.getElementById('reminderPanel').classList.toggle('show');
+        };
+
+        window.toggleReminder = function() {
+            const reminder = loadReminder();
+            if (!reminder.enabled) {
+                if (Notification.permission !== 'granted') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            reminder.enabled = true;
+                            saveReminder(reminder);
+                            startReminderCheck();
+                            showToast('Reminders enabled', 'success');
+                            renderReminderUI();
+                        } else {
+                            showToast('Notification permission denied', 'error');
+                        }
+                    });
+                    return;
+                }
+            }
+            reminder.enabled = !reminder.enabled;
+            saveReminder(reminder);
+            if (reminder.enabled) {
+                startReminderCheck();
+                showToast('Reminders enabled', 'success');
+            } else {
+                showToast('Reminders disabled', 'success');
+            }
+            renderReminderUI();
+        };
+
+        window.updateReminderTime = function() {
+            const reminder = loadReminder();
+            reminder.time = document.getElementById('reminderTime').value || '20:00';
+            saveReminder(reminder);
+        };
+
+        window.updateReminderMessage = function() {
+            const reminder = loadReminder();
+            reminder.message = document.getElementById('reminderMessage').value || 'Time to write!';
+            saveReminder(reminder);
+        };
+
+        function renderReminderUI() {
+            const reminder = loadReminder();
+            const sw = document.getElementById('reminderSwitch');
+            const timeInput = document.getElementById('reminderTime');
+            const msgInput = document.getElementById('reminderMessage');
+            const statusEl = document.getElementById('reminderStatus');
+
+            timeInput.value = reminder.time || '20:00';
+            msgInput.value = reminder.message || 'Time to write!';
+
+            if (reminder.enabled) {
+                sw.classList.add('active');
+                statusEl.innerHTML = '<div class="reminder-dot"></div><span>Active — daily at ' + reminder.time + '</span>';
+            } else {
+                sw.classList.remove('active');
+                statusEl.innerHTML = '<div class="reminder-dot inactive"></div><span>Off — click to enable</span>';
+            }
+        }
 
         // ═══════════════════════════════════════
         // EXPORT
@@ -1625,6 +1823,12 @@
 
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.export-dropdown')) document.getElementById('exportMenu').classList.remove('show');
+            if (!e.target.closest('.font-picker-panel') && !e.target.closest('[onclick="toggleFontPicker()"]')) {
+                document.getElementById('fontPickerPanel').classList.remove('show');
+            }
+            if (!e.target.closest('.reminder-panel') && !e.target.closest('[onclick="toggleReminderPanel()"]')) {
+                document.getElementById('reminderPanel').classList.remove('show');
+            }
         });
 
         // ═══════════════════════════════════════
@@ -1898,6 +2102,7 @@
             loadTheme();
             loadWallpaper();
             loadPaperTheme();
+            loadFont();
             setDefaultDate();
             loadDraft();
             renderDashboard();
@@ -1906,6 +2111,9 @@
             calculateStreak();
             updateTrashBadge();
             checkTutorial();
+            renderReminderUI();
+            const reminder = loadReminder();
+            if (reminder.enabled) startReminderCheck();
             window.addEventListener('hashchange', handleHash);
             handleHash();
         }
