@@ -93,7 +93,17 @@
                         <button class="export-menu-item" onclick="exportEntries('json')">
                             <i class="fa-solid fa-file-code"></i> Export as JSON
                         </button>
+                        <div class="export-menu-divider"></div>
+                        <button class="export-menu-item" onclick="exportFullBackup()">
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Full Backup
+                        </button>
                     </div>
+                </div>
+                <div class="import-wrap">
+                    <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importBackup(event)">
+                    <button class="nav-item" onclick="document.getElementById('importFileInput').click()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Import Backup
+                    </button>
                 </div>
                 <button class="nav-item" onclick="openWallpaperModal()">
                     <i class="fa-solid fa-image"></i> Wallpaper
@@ -223,6 +233,17 @@
                     <span style="color:var(--text-muted); font-size:13px;">to</span>
                     <input type="date" class="filter-input" id="dateTo" onchange="handleSearch()">
                     <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+                </div>
+
+                <div class="sort-row">
+                    <label class="sort-label"><i class="fa-solid fa-arrow-down-wide-short"></i> Sort by</label>
+                    <select class="filter-select" id="sortSelect" onchange="handleSort()">
+                        <option value="date-desc">Date (Newest First)</option>
+                        <option value="date-asc">Date (Oldest First)</option>
+                        <option value="words-desc">Words (High → Low)</option>
+                        <option value="words-asc">Words (Low → High)</option>
+                        <option value="mood">Mood</option>
+                    </select>
                 </div>
 
                 <div id="entriesContainer" style="margin-top: 20px;"></div>
@@ -476,6 +497,7 @@
         const PAPER_THEME_KEY = 'diary_paper_theme';
         const FONT_KEY = 'diary_writing_font';
         const REMINDER_KEY = 'diary_reminder';
+        const SORT_KEY = 'diary_sort';
 
         let entries = loadEntries();
         let trash = loadTrash();
@@ -488,6 +510,14 @@
         let selectedMood = '';
         let calendarYear, calendarMonth;
         let currentPromptCategory = 'all';
+
+        const moodOrder = {
+            '🥰': 0, '😊': 1, '😎': 2, '🎉': 3,
+            '😐': 4, '🤔': 5, '😴': 6,
+            '😢': 7, '😤': 8, '💔': 9, '📝': 10
+        };
+
+        let currentSort = 'date-desc';
 
         // ═══════════════════════════════════════
         // WRITING PROMPTS
@@ -636,6 +666,13 @@
         }
 
         function saveEntries() { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+
+        function loadSort() {
+            const saved = localStorage.getItem(SORT_KEY);
+            return saved || 'date-desc';
+        }
+
+        function saveSort(sort) { localStorage.setItem(SORT_KEY, sort); }
 
         function loadTrash() {
             try { return JSON.parse(localStorage.getItem(TRASH_KEY)) || []; }
@@ -1360,6 +1397,34 @@
         // ═══════════════════════════════════════
         window.handleSearch = function() { renderDashboard(); };
 
+        window.handleSort = function() {
+            currentSort = document.getElementById('sortSelect').value;
+            saveSort(currentSort);
+            renderDashboard();
+        };
+
+        function sortEntries(arr) {
+            const sorted = [...arr];
+            switch (currentSort) {
+                case 'date-asc':
+                    sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    break;
+                case 'date-desc':
+                    sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    break;
+                case 'words-asc':
+                    sorted.sort((a, b) => (a.wordCount || 0) - (b.wordCount || 0));
+                    break;
+                case 'words-desc':
+                    sorted.sort((a, b) => (b.wordCount || 0) - (a.wordCount || 0));
+                    break;
+                case 'mood':
+                    sorted.sort((a, b) => (moodOrder[a.mood] ?? 10) - (moodOrder[b.mood] ?? 10));
+                    break;
+            }
+            return sorted;
+        }
+
         function getFilteredEntries() {
             let result = [...entries];
             const query = document.getElementById('searchInput').value.toLowerCase();
@@ -1371,7 +1436,7 @@
             if (tagFilter) result = result.filter(e => (e.tags || []).includes(tagFilter));
             if (dateFrom) result = result.filter(e => e.date >= dateFrom);
             if (dateTo) result = result.filter(e => e.date <= dateTo + 'T23:59');
-            return result;
+            return sortEntries(result);
         }
 
         function updateTagFilter() {
@@ -1394,6 +1459,9 @@
             document.getElementById('tagFilter').value = '';
             document.getElementById('dateFrom').value = '';
             document.getElementById('dateTo').value = '';
+            document.getElementById('sortSelect').value = 'date-desc';
+            currentSort = 'date-desc';
+            saveSort(currentSort);
             renderDashboard();
         };
 
@@ -1817,6 +1885,63 @@
             showToast('Exported as ' + format.toUpperCase(), 'success');
         };
 
+        // ═══════════════════════════════════════
+        // FULL BACKUP & RESTORE
+        // ═══════════════════════════════════════
+        window.exportFullBackup = function() {
+            if (entries.length === 0 && trash.length === 0) { showToast('No data to backup', 'error'); return; }
+            const backup = {
+                format: 'index-diary-backup',
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                entries: entries.map(e => ({...e})),
+                trash: trash.map(e => ({...e}))
+            };
+            const json = JSON.stringify(backup, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index-diary-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            document.getElementById('exportMenu').classList.remove('show');
+            showToast('Full backup downloaded', 'success');
+        };
+
+        window.importBackup = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            event.target.value = '';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data || data.format !== 'index-diary-backup' || !data.entries) {
+                        showToast('Invalid backup file', 'error');
+                        return;
+                    }
+                    const entryCount = data.entries.length;
+                    const trashCount = (data.trash || []).length;
+                    showModal(
+                        'Import Backup?',
+                        'This will replace all ' + entries.length + ' current entries and ' + trash.length + ' trash items with ' + entryCount + ' entries and ' + trashCount + ' trash items from the backup. This cannot be undone.',
+                        function() {
+                            entries = data.entries;
+                            trash = data.trash || [];
+                            saveEntries();
+                            saveTrash();
+                            showToast('Backup imported! Reloading...', 'success');
+                            setTimeout(function() { location.reload(); }, 1200);
+                        }
+                    );
+                } catch (err) {
+                    showToast('Could not read backup file', 'error');
+                }
+            };
+            reader.readAsText(file);
+        };
+
         window.addEventListener('resize', function() {
             if (tutorialStep >= 0) renderTutorialStep();
         });
@@ -2103,6 +2228,8 @@
             loadWallpaper();
             loadPaperTheme();
             loadFont();
+            currentSort = loadSort();
+            document.getElementById('sortSelect').value = currentSort;
             setDefaultDate();
             loadDraft();
             renderDashboard();

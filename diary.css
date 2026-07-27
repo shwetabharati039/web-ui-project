@@ -1132,6 +1132,41 @@ body {
     flex-wrap: wrap;
 }
 
+/* Sort controls */
+.sort-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.sort-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.sort-label i {
+    font-size: 12px;
+    color: var(--accent);
+}
+
+/* Export menu divider */
+.export-menu-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 8px;
+}
+
+/* Import wrap */
+.import-wrap {
+    margin-bottom: 4px;
+}
+
 /* Wallpaper Modal */
 .wallpaper-modal-box {
     max-width: 520px;
