@@ -188,6 +188,10 @@
 
             <!-- Dashboard Page -->
             <div class="page active" id="page-dashboard">
+                <div class="welcome-banner" id="welcomeBanner">
+                    <div class="welcome-greeting" id="welcomeGreeting"></div>
+                    <p class="welcome-sub" id="welcomeSub"></p>
+                </div>
                 <div class="page-header">
                     <div>
                         <h1 class="page-title">My Diary</h1>
@@ -1026,11 +1030,26 @@
         // ═══════════════════════════════════════
         // RENDER DASHBOARD (with pinning)
         // ═══════════════════════════════════════
+        function getGreeting() {
+            const h = new Date().getHours();
+            if (h < 12) return 'Good morning';
+            if (h < 18) return 'Good afternoon';
+            return 'Good evening';
+        }
+
         function renderDashboard() {
             const filtered = getFilteredEntries();
             const container = document.getElementById('entriesContainer');
             document.getElementById('entryCount').textContent = entries.length + ' entr' + (entries.length !== 1 ? 'ies' : 'y');
             updateTagFilter();
+
+            const greeting = getGreeting();
+            document.getElementById('welcomeGreeting').textContent = entries.length > 0
+                ? greeting + '! 👋'
+                : greeting + '! 📖';
+            document.getElementById('welcomeSub').textContent = entries.length > 0
+                ? 'You have ' + entries.length + ' entr' + (entries.length !== 1 ? 'ies' : 'y') + ' saved. Keep the momentum going!'
+                : 'Your diary is waiting. Start writing today!';
 
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-feather-pointed"></i><h3>' + (entries.length === 0 ? 'Start Your Journey' : 'No entries found') + '</h3><p>' + (entries.length === 0 ? 'Write your first diary entry and capture your thoughts.' : 'Try adjusting your search or filters.') + '</p>' + (entries.length === 0 ? '<button class="btn btn-primary" onclick="navigateTo(\'new-entry\')"><i class="fa-solid fa-plus"></i> Write First Entry</button>' : '') + '</div>';
