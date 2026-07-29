@@ -270,12 +270,33 @@
                         <span id="autosaveText">Draft saved</span>
                     </div>
 
+                    <!-- Template Selector -->
+                    <div class="template-section" id="templateSection">
+                        <label class="form-label"><i class="fa-solid fa-file-lines"></i> Start with a Template</label>
+                        <div class="template-grid" id="templateGrid"></div>
+                    </div>
+
                     <div class="form-group">
                         <input type="text" class="form-input form-input-title" id="entryTitle" placeholder="Give your day a title..." oninput="autoSaveDraft()">
                     </div>
 
                     <div class="form-group">
-                        <textarea class="form-textarea" id="entryContent" placeholder="Start writing..." oninput="autoSaveDraft()"></textarea>
+                        <div class="format-toolbar" id="formatToolbar">
+                            <button class="format-btn" onclick="formatDoc('bold')" title="Bold (Ctrl+B)"><i class="fa-solid fa-bold"></i></button>
+                            <button class="format-btn" onclick="formatDoc('italic')" title="Italic (Ctrl+I)"><i class="fa-solid fa-italic"></i></button>
+                            <button class="format-btn" onclick="formatDoc('underline')" title="Underline (Ctrl+U)"><i class="fa-solid fa-underline"></i></button>
+                            <span class="toolbar-divider"></span>
+                            <button class="format-btn" onclick="formatDoc('insertUnorderedList')" title="Bullet List"><i class="fa-solid fa-list-ul"></i></button>
+                            <button class="format-btn" onclick="formatDoc('insertOrderedList')" title="Numbered List"><i class="fa-solid fa-list-ol"></i></button>
+                            <span class="toolbar-divider"></span>
+                            <button class="format-btn" onclick="formatDoc('formatBlock', 'h3')" title="Heading"><i class="fa-solid fa-heading"></i></button>
+                            <button class="format-btn" onclick="formatDoc('formatBlock', 'p')" title="Paragraph"><i class="fa-solid fa-paragraph"></i></button>
+                            <span class="toolbar-divider"></span>
+                            <button class="format-btn" onclick="formatDoc('insertHorizontalRule')" title="Divider"><i class="fa-solid fa-minus"></i></button>
+                        </div>
+                        <div class="editor-wrap">
+                            <div class="editor-content" id="entryContent" contenteditable="true" data-placeholder="Start writing..." oninput="autoSaveDraft()"></div>
+                        </div>
                         <div class="word-count-bar" id="wordCountBar">
                             <span id="wordCount">0 words</span>
                             <span id="charCount">0 characters</span>
@@ -602,6 +623,258 @@
             "Write a short letter of forgiveness — to yourself or someone else."
         ];
 
+        // ═══════════════════════════════════════
+        // TEMPLATES
+        // ═══════════════════════════════════════
+        const templates = [
+            {
+                id: 'gratitude',
+                label: 'Gratitude',
+                icon: '🙏',
+                desc: 'What you\'re thankful for',
+                title: 'Gratitude Journal',
+                mood: '😊',
+                content: '<h3>Today I\'m grateful for...</h3><ul><li><br></li><li><br></li><li><br></li></ul><p><br></p><h3>Something that made me smile today:</h3><p><br></p><h3>Someone who made a difference:</h3><p><br></p>'
+            },
+            {
+                id: 'reflection',
+                label: 'Reflection',
+                icon: '🤔',
+                desc: 'Look back on your day',
+                title: 'Daily Reflection',
+                mood: '🤔',
+                content: '<h3>What went well today?</h3><p><br></p><h3>What could I have done better?</h3><p><br></p><h3>What did I learn?</h3><p><br></p><h3>How am I feeling right now?</h3><p><br></p>'
+            },
+            {
+                id: 'daily_log',
+                label: 'Daily Log',
+                icon: '📋',
+                desc: 'Log your day\'s events',
+                title: 'Daily Log',
+                mood: '📝',
+                content: '<h3>Morning</h3><p><br></p><h3>Afternoon</h3><p><br></p><h3>Evening</h3><p><br></p><h3>Today\'s Highlight</h3><p><br></p>'
+            },
+            {
+                id: 'morning_pages',
+                label: 'Morning Pages',
+                icon: '🌅',
+                desc: 'Free-write your morning',
+                title: 'Morning Pages',
+                mood: '😊',
+                content: '<p><i>Free write without stopping or editing. Let your thoughts flow...</i></p><p><br></p><p><br></p><p><br></p><p><br></p><p><br></p>'
+            },
+            {
+                id: 'evening_review',
+                label: 'Evening Review',
+                icon: '🌙',
+                desc: 'Wind down and reflect',
+                title: 'Evening Review',
+                mood: '😴',
+                content: '<h3>Today\'s Wins</h3><p><br></p><h3>Challenges I Faced</h3><p><br></p><h3>What I\'m Looking Forward To Tomorrow</h3><p><br></p><h3>Gratitude of the Day</h3><p><br></p>'
+            },
+            {
+                id: 'week_review',
+                label: 'Week Review',
+                icon: '📅',
+                desc: 'Review your past week',
+                title: 'Weekly Review',
+                mood: '🤔',
+                content: '<h3>Biggest Accomplishment This Week</h3><p><br></p><h3>What Challenged Me</h3><p><br></p><h3>Something I Learned</h3><p><br></p><h3>My Goal for Next Week</h3><p><br></p>'
+            },
+            {
+                id: 'dream_journal',
+                label: 'Dream Journal',
+                icon: '💭',
+                desc: 'Record your dreams',
+                title: 'Dream Journal',
+                mood: '😴',
+                content: '<h3>Dream Summary</h3><p><br></p><h3>Key Symbols / Images</h3><ul><li><br></li><li><br></li><li><br></li></ul><h3>Emotions I Felt</h3><p><br></p>'
+            },
+            {
+                id: 'goal_setting',
+                label: 'Goal Setting',
+                icon: '🎯',
+                desc: 'Set and track goals',
+                title: 'My Goals',
+                mood: '😎',
+                content: '<h3>Short-term Goals (This Month)</h3><ul><li><br></li><li><br></li><li><br></li></ul><h3>Long-term Goals (This Year)</h3><ul><li><br></li><li><br></li></ul><h3>Steps I\'ll Take Tomorrow</h3><p><br></p>'
+            },
+            {
+                id: 'free_write',
+                label: 'Free Writing',
+                icon: '✍️',
+                desc: 'Write without limits',
+                title: 'Free Writing',
+                mood: '📝',
+                content: '<p><i>Write whatever comes to mind. No rules, no editing — just let it flow.</i></p><p><br></p><p><br></p><p><br></p><p><br></p>'
+            }
+        ];
+
+        // ═══════════════════════════════════════
+        // TEMPLATE RENDERER
+        // ═══════════════════════════════════════
+        function renderTemplateGrid() {
+            const grid = document.getElementById('templateGrid');
+            if (!grid) return;
+            grid.innerHTML = templates.map(t =>
+                '<div class="template-card" onclick="applyTemplate(\'' + t.id + '\')">' +
+                    '<div class="template-card-icon">' + t.icon + '</div>' +
+                    '<div class="template-card-label">' + t.label + '</div>' +
+                    '<div class="template-card-desc">' + t.desc + '</div>' +
+                '</div>'
+            ).join('');
+        }
+
+        window.applyTemplate = function(id) {
+            const tpl = templates.find(t => t.id === id);
+            if (!tpl) return;
+
+            resetForm();
+
+            document.getElementById('entryTitle').value = tpl.title;
+
+            const editor = document.getElementById('entryContent');
+            editor.innerHTML = tpl.content;
+
+            if (tpl.mood) {
+                selectedMood = tpl.mood;
+                document.querySelectorAll('.mood-option').forEach(m => {
+                    m.classList.toggle('selected', m.dataset.mood === selectedMood);
+                });
+            }
+
+            // Scroll to editor
+            editor.focus();
+            // Place cursor at first empty position
+            const range = document.createRange();
+            const sel = window.getSelection();
+            const firstEmpty = editor.querySelector('br') || editor;
+            range.setStart(firstEmpty, 0);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            updateWordCount();
+            autoSaveDraft();
+            showToast('Template applied: ' + tpl.label, 'success');
+        };
+
+        // ═══════════════════════════════════════
+        // RICH TEXT HELPERS
+        // ═══════════════════════════════════════
+        window.formatDoc = function(command, value) {
+            const editor = document.getElementById('entryContent');
+            editor.focus();
+            if (command === 'formatBlock') {
+                document.execCommand(command, false, value || 'p');
+            } else {
+                document.execCommand(command, false, value || null);
+            }
+            autoSaveDraft();
+            // Update toolbar button states
+            updateToolbarState();
+        };
+
+        function getEditorContent() {
+            const editor = document.getElementById('entryContent');
+            const html = editor.innerHTML;
+            const stripped = stripHtml(html).trim();
+            const isEmpty = !stripped && (/^(<br\s*\/?>|\s|&nbsp;)*$/.test(html) || html === '');
+            editor.classList.toggle('editor-empty', isEmpty);
+            return isEmpty ? '' : html;
+        }
+
+        function setEditorContent(html) {
+            const editor = document.getElementById('entryContent');
+            editor.innerHTML = html || '';
+            editor.classList.toggle('editor-empty', !html || /^(<br\s*\/?>|\s|&nbsp;)*$/.test(html));
+        }
+
+        function sanitizeHtml(html) {
+            if (!html) return '';
+            const allowed = ['b', 'i', 'u', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr', 'pre'];
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            function clean(node) {
+                if (node.nodeType === 3) return; // text node
+                if (node.nodeType === 1) {
+                    const tag = node.tagName.toLowerCase();
+                    if (!allowed.includes(tag)) {
+                        const parent = node.parentNode;
+                        while (node.firstChild) parent.insertBefore(node.firstChild, node);
+                        parent.removeChild(node);
+                        return;
+                    }
+                    // Remove all attributes except for specific allowed ones
+                    const allowedAttrs = [];
+                    Array.from(node.attributes).forEach(attr => {
+                        if (!allowedAttrs.includes(attr.name)) {
+                            node.removeAttribute(attr.name);
+                        }
+                    });
+                    Array.from(node.childNodes).forEach(clean);
+                }
+            }
+            Array.from(temp.childNodes).forEach(clean);
+            return temp.innerHTML;
+        }
+
+        function stripHtml(html) {
+            if (!html) return '';
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            return div.textContent || '';
+        }
+
+        function updateToolbarState() {
+            // Could be extended to highlight active buttons based on current selection
+        }
+
+        // Ensure keyboard shortcuts like Ctrl+B work in the editor
+        document.addEventListener('keydown', function(e) {
+            const editor = document.getElementById('entryContent');
+            if (document.activeElement !== editor && !editor.contains(document.activeElement)) return;
+
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'b' || e.key === 'B') {
+                    e.preventDefault();
+                    formatDoc('bold');
+                } else if (e.key === 'i' || e.key === 'I') {
+                    e.preventDefault();
+                    formatDoc('italic');
+                } else if (e.key === 'u' || e.key === 'U') {
+                    e.preventDefault();
+                    formatDoc('underline');
+                }
+            }
+        });
+
+        // ═══════════════════════════════════════
+        // FORMAT TOOLBAR STATE TRACKING
+        // ═══════════════════════════════════════
+        document.addEventListener('mouseup', function(e) {
+            const editor = document.getElementById('entryContent');
+            if (document.activeElement === editor || editor.contains(document.activeElement)) {
+                setTimeout(updateToolbarState, 10);
+            }
+        });
+
+        // ═══════════════════════════════════════
+        // PASTE HANDLER — sanitize pasted HTML
+        // ═══════════════════════════════════════
+        (function bindPaste() {
+            const editor = document.getElementById('entryContent');
+            if (editor) {
+                editor.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+                    if (text) {
+                        document.execCommand('insertText', false, text);
+                    }
+                });
+            }
+        })();
+
         function getPromptSeed() {
             const now = new Date();
             return now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
@@ -690,7 +963,7 @@
                 const draft = JSON.parse(localStorage.getItem(DRAFT_KEY));
                 if (draft) {
                     document.getElementById('entryTitle').value = draft.title || '';
-                    document.getElementById('entryContent').value = draft.content || '';
+                    setEditorContent(draft.content || '');
                     if (draft.mood) {
                         selectedMood = draft.mood;
                         const opt = document.querySelector('.mood-option[data-mood="' + draft.mood + '"]');
@@ -712,7 +985,7 @@
         function saveDraft() {
             localStorage.setItem(DRAFT_KEY, JSON.stringify({
                 title: document.getElementById('entryTitle').value,
-                content: document.getElementById('entryContent').value,
+                content: getEditorContent(),
                 mood: selectedMood, tags: currentTags,
                 images: currentImages,
                 date: document.getElementById('entryDate').value
@@ -722,7 +995,7 @@
         function clearDraft() {
             localStorage.removeItem(DRAFT_KEY);
             document.getElementById('entryTitle').value = '';
-            document.getElementById('entryContent').value = '';
+            setEditorContent('');
             document.getElementById('editEntryId').value = '';
             selectedMood = '';
             currentTags = [];
@@ -740,6 +1013,9 @@
         // AUTO-SAVE
         // ═══════════════════════════════════════
         window.autoSaveDraft = function() {
+            const editor = document.getElementById('entryContent');
+            const html = editor.innerHTML;
+            editor.classList.toggle('editor-empty', !stripHtml(html).trim() && (/^(<br\s*\/?>|\s|&nbsp;)*$/.test(html) || html === ''));
             updateWordCount();
             const indicator = document.getElementById('autosaveIndicator');
             const dot = document.getElementById('autosaveDot');
@@ -776,6 +1052,7 @@
                 window.location.hash = '';
             } else if (page === 'new-entry') {
                 if (!editingEntryId && !param) resetForm();
+                renderTemplateGrid();
                 setTimeout(applyPaperTheme, 10);
                 window.location.hash = 'new';
             } else if (page === 'detail' && param) {
@@ -816,7 +1093,7 @@
 
         function resetForm() {
             document.getElementById('entryTitle').value = '';
-            document.getElementById('entryContent').value = '';
+            setEditorContent('');
             document.getElementById('editEntryId').value = '';
             selectedMood = '';
             currentTags = [];
@@ -869,7 +1146,8 @@
         };
 
         function updateWordCount() {
-            const text = document.getElementById('entryContent').value;
+            const editor = document.getElementById('entryContent');
+            const text = stripHtml(editor.innerHTML);
             const words = text.trim() ? text.trim().split(/\s+/).length : 0;
             const chars = text.length;
             document.getElementById('wordCount').textContent = words + ' word' + (words !== 1 ? 's' : '');
@@ -946,7 +1224,7 @@
         // ═══════════════════════════════════════
         window.saveEntry = function() {
             const title = document.getElementById('entryTitle').value.trim();
-            const content = document.getElementById('entryContent').value.trim();
+            const content = sanitizeHtml(getEditorContent()).trim();
             const date = document.getElementById('entryDate').value;
             if (!title && !content) { showToast('Write something before saving!', 'error'); return; }
 
@@ -958,7 +1236,7 @@
                 tags: [...currentTags],
                 images: [...currentImages],
                 pinned: editingEntryId ? (entries.find(e => e.id === editingEntryId)?.pinned || false) : false,
-                wordCount: content.trim() ? content.trim().split(/\s+/).length : 0,
+                wordCount: stripHtml(content).trim() ? stripHtml(content).trim().split(/\s+/).length : 0,
                 createdAt: editingEntryId ? (entries.find(e => e.id === editingEntryId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
@@ -983,7 +1261,7 @@
             if (!entry) return;
             editingEntryId = id;
             document.getElementById('entryTitle').value = entry.title === 'Untitled' ? '' : entry.title;
-            document.getElementById('entryContent').value = entry.content;
+            setEditorContent(entry.content);
             document.getElementById('entryDate').value = entry.date.slice(0, 16);
             selectedMood = entry.mood;
             currentTags = [...(entry.tags || [])];
@@ -1093,7 +1371,7 @@
                 '</div>' +
                 images +
                 '<div class="entry-card-title">' + escapeHtml(entry.title) + lockIcon + '</div>' +
-                '<div class="entry-card-preview">' + escapeHtml(entry.content) + '</div>' +
+                '<div class="entry-card-preview">' + escapeHtml(stripHtml(entry.content)) + '</div>' +
                 '<div class="entry-card-footer">' +
                     '<div class="entry-card-tags">' + tags + '</div>' +
                     '<span class="entry-card-wordcount">' + (entry.wordCount || 0) + ' words · ' + readMin + ' min read</span>' +
@@ -1132,7 +1410,7 @@
                     '<span class="detail-meta-item"><i class="fa-solid fa-stopwatch"></i> ~' + readMin + ' min read</span>' +
                 '</div>' +
                 images +
-                '<div class="detail-content detail-paper-wrap paper-' + currentPaperTheme + '" style="margin-top:28px;' + detailFontStyle + '">' + escapeHtml(entry.content) + '</div>' +
+                '<div class="detail-content detail-paper-wrap paper-' + currentPaperTheme + '" style="margin-top:28px;' + detailFontStyle + '">' + sanitizeHtml(entry.content) + '</div>' +
                 (tags ? '<div class="detail-tags">' + tags + '</div>' : '') +
                 '<div class="detail-actions">' +
                     '<button class="btn btn-secondary btn-sm" onclick="editEntry(\'' + entry.id + '\')"><i class="fa-solid fa-pen"></i> Edit</button>' +
@@ -1451,7 +1729,7 @@
             const dateFrom = document.getElementById('dateFrom').value;
             const dateTo = document.getElementById('dateTo').value;
 
-            if (query) result = result.filter(e => e.title.toLowerCase().includes(query) || e.content.toLowerCase().includes(query));
+            if (query) result = result.filter(e => e.title.toLowerCase().includes(query) || stripHtml(e.content).toLowerCase().includes(query));
             if (tagFilter) result = result.filter(e => (e.tags || []).includes(tagFilter));
             if (dateFrom) result = result.filter(e => e.date >= dateFrom);
             if (dateTo) result = result.filter(e => e.date <= dateTo + 'T23:59');
@@ -1708,10 +1986,11 @@
         }
 
         function applyPaperTheme() {
-            const textarea = document.getElementById('entryContent');
+            const editor = document.getElementById('entryContent');
             const paperOptions = document.querySelectorAll('.paper-theme-option');
-            if (textarea) {
-                textarea.className = 'form-textarea' + (currentPaperTheme !== 'blank' ? ' paper-' + currentPaperTheme : '');
+            if (editor) {
+                const themeClass = currentPaperTheme !== 'blank' ? ' paper-' + currentPaperTheme : '';
+                editor.className = 'editor-content' + themeClass;
             }
             paperOptions.forEach(opt => {
                 opt.classList.toggle('active', opt.dataset.paper === currentPaperTheme);
@@ -1743,17 +2022,17 @@
         }
 
         function applyFont() {
-            const textarea = document.getElementById('entryContent');
+            const editor = document.getElementById('entryContent');
             const fontMap = {
                 'default': "'Inter', sans-serif",
                 'serif': "'Playfair Display', Georgia, serif",
                 'handwriting': "'Caveat', cursive",
                 'georgia': "'Georgia', 'Times New Roman', serif"
             };
-            if (textarea && currentFont !== 'default') {
-                textarea.style.fontFamily = fontMap[currentFont] || fontMap['default'];
-            } else if (textarea) {
-                textarea.style.fontFamily = '';
+            if (editor && currentFont !== 'default') {
+                editor.style.fontFamily = fontMap[currentFont] || fontMap['default'];
+            } else if (editor) {
+                editor.style.fontFamily = '';
             }
             document.querySelectorAll('.font-picker-option').forEach(opt => {
                 opt.classList.toggle('active', opt.dataset.font === currentFont);
@@ -1889,7 +2168,7 @@
             if (format === 'txt') {
                 content = entries.map(e => {
                     const d = new Date(e.date).toLocaleString();
-                    return '═'.repeat(50) + '\n' + (e.mood || '') + ' ' + e.title + '\nDate: ' + d + '\nTags: ' + (e.tags || []).map(t => '#' + t).join(' ') + '\nWord Count: ' + (e.wordCount || 0) + '\n' + '─'.repeat(50) + '\n\n' + e.content + '\n';
+                    return '═'.repeat(50) + '\n' + (e.mood || '') + ' ' + e.title + '\nDate: ' + d + '\nTags: ' + (e.tags || []).map(t => '#' + t).join(' ') + '\nWord Count: ' + (e.wordCount || 0) + '\n' + '─'.repeat(50) + '\n\n' + stripHtml(e.content) + '\n';
                 }).join('\n');
                 filename = 'diary-export.txt'; type = 'text/plain';
             } else {
@@ -2005,6 +2284,7 @@
         document.addEventListener('keydown', function(e) {
             const tag = e.target.tagName.toLowerCase();
             const isInput = tag === 'input' || tag === 'textarea' || tag === 'select';
+            const isContentEditable = e.target.isContentEditable;
 
             if (e.key === 'Escape') {
                 if (tutorialStep >= 0) { endTutorial(); return; }
@@ -2021,7 +2301,7 @@
                 else if (e.key === 'k' || e.key === 'K') { e.preventDefault(); if (!isInput) document.getElementById('searchInput').focus(); }
                 else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); navigateTo('dashboard'); }
                 else if (e.key === 'l' || e.key === 'L') { e.preventDefault(); navigateTo('calendar'); }
-                else if ((e.key === 'a' || e.key === 'A') && !isInput) { e.preventDefault(); navigateTo('analytics'); }
+                else if ((e.key === 'a' || e.key === 'A') && !isInput && !isContentEditable) { e.preventDefault(); navigateTo('analytics'); }
                 else if (e.key === 'd' || e.key === 'D') { e.preventDefault(); toggleTheme(); }
             }
         });
