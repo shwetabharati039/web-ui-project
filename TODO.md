@@ -12,5 +12,5 @@
 | 6 | Entry Sharing | Share a single entry as formatted text | Pending |
 | 7 | Templates | Pre-made templates (gratitude, reflection, daily log, etc.) | Pending |
 | 8 | Rich Text Formatting | Bold, italic, bullet lists in entries | Pending |
-| 9 | Mood Line Chart | Visual mood trend over time (not just bars) | Pending |
+| 9 | Mood Line Chart | Visual mood trend over time (not just bars) | Done |
 | 10 | Location Tagging | Add place/location to entries | Pending |

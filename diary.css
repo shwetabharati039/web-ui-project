@@ -1835,6 +1835,13 @@ body {
     flex-shrink: 0;
 }
 
+/* Mood trend chart */
+#moodTrendChart {
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-sm);
+}
+
 /* Activity heatmap */
 .activity-heatmap {
     display: grid;
