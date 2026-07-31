@@ -63,6 +63,9 @@
                 <button class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
                     <i class="fa-solid fa-house"></i> Dashboard
                 </button>
+                <button class="nav-item" data-page="bookmarks" onclick="navigateTo('bookmarks')">
+                    <i class="fa-solid fa-bookmark"></i> Bookmarks <span class="bookmark-count-badge" id="bookmarkBadge" style="display:none;">0</span>
+                </button>
                 <button class="nav-item" data-page="new-entry" onclick="navigateTo('new-entry')">
                     <i class="fa-solid fa-plus"></i> New Entry
                 </button>
@@ -251,6 +254,17 @@
                 </div>
 
                 <div id="entriesContainer" style="margin-top: 20px;"></div>
+            </div>
+
+            <!-- Bookmarks Page -->
+            <div class="page" id="page-bookmarks">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Bookmarks</h1>
+                        <p class="page-subtitle" id="bookmarksSubtitle">Entries you've saved for quick access</p>
+                    </div>
+                </div>
+                <div id="bookmarksContainer" style="margin-top: 20px;"></div>
             </div>
 
             <!-- New Entry Page -->
@@ -1055,6 +1069,9 @@
                 renderWritingTip();
                 calculateStreak();
                 window.location.hash = '';
+            } else if (page === 'bookmarks') {
+                renderBookmarks();
+                window.location.hash = 'bookmarks';
             } else if (page === 'new-entry') {
                 if (!editingEntryId && !param) resetForm();
                 renderTemplateGrid();
@@ -1078,6 +1095,7 @@
         function handleHash() {
             const hash = window.location.hash.slice(1);
             if (!hash) { navigateTo('dashboard'); return; }
+            if (hash === 'bookmarks') { navigateTo('bookmarks'); return; }
             if (hash === 'new') { navigateTo('new-entry'); return; }
             if (hash === 'calendar') { navigateTo('calendar'); return; }
             if (hash === 'analytics') { navigateTo('analytics'); return; }
@@ -1241,6 +1259,7 @@
                 tags: [...currentTags],
                 images: [...currentImages],
                 pinned: editingEntryId ? (entries.find(e => e.id === editingEntryId)?.pinned || false) : false,
+                bookmarked: editingEntryId ? (entries.find(e => e.id === editingEntryId)?.bookmarked || false) : false,
                 wordCount: stripHtml(content).trim() ? stripHtml(content).trim().split(/\s+/).length : 0,
                 createdAt: editingEntryId ? (entries.find(e => e.id === editingEntryId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -1311,6 +1330,39 @@
         };
 
         // ═══════════════════════════════════════
+        // BOOKMARK ENTRIES
+        // ═══════════════════════════════════════
+        window.toggleBookmark = function(id, e) {
+            if (e) e.stopPropagation();
+            const entry = entries.find(en => en.id === id);
+            if (entry) {
+                entry.bookmarked = !entry.bookmarked;
+                saveEntries();
+                const activePage = document.querySelector('.page.active');
+                if (activePage && activePage.id === 'page-bookmarks') {
+                    renderBookmarks();
+                } else if (activePage && activePage.id === 'page-detail') {
+                    renderDetail(id);
+                } else {
+                    renderDashboard();
+                }
+                updateBookmarkBadge();
+                showToast(entry.bookmarked ? 'Entry bookmarked' : 'Bookmark removed', 'success');
+            }
+        };
+
+        function updateBookmarkBadge() {
+            const badge = document.getElementById('bookmarkBadge');
+            const count = entries.filter(e => e.bookmarked).length;
+            if (count > 0) {
+                badge.style.display = 'inline';
+                badge.textContent = count;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // ═══════════════════════════════════════
         // RENDER DASHBOARD (with pinning)
         // ═══════════════════════════════════════
         function getGreeting() {
@@ -1370,6 +1422,7 @@
                 '<div class="entry-card-header">' +
                     '<span class="entry-card-mood">' + (entry.mood || '📝') + '</span>' +
                     '<div style="display:flex;align-items:center;gap:6px;">' +
+                        '<button class="pin-btn ' + (entry.bookmarked ? 'bookmarked' : '') + '" onclick="toggleBookmark(\'' + entry.id + '\', event)" title="' + (entry.bookmarked ? 'Remove bookmark' : 'Bookmark') + '"><i class="fa-solid fa-bookmark"></i></button>' +
                         '<button class="pin-btn ' + (entry.pinned ? 'pinned' : '') + '" onclick="togglePin(\'' + entry.id + '\', event)" title="' + (entry.pinned ? 'Unpin' : 'Pin') + '"><i class="fa-solid fa-thumbtack"></i></button>' +
                         '<span class="entry-card-date">' + dateStr + '</span>' +
                     '</div>' +
@@ -1381,6 +1434,23 @@
                     '<div class="entry-card-tags">' + tags + '</div>' +
                     '<span class="entry-card-wordcount">' + (entry.wordCount || 0) + ' words · ' + readMin + ' min read</span>' +
                 '</div></div>';
+        }
+
+        // ═══════════════════════════════════════
+        // RENDER BOOKMARKS
+        // ═══════════════════════════════════════
+        function renderBookmarks() {
+            const bookmarked = entries.filter(e => e.bookmarked);
+            const container = document.getElementById('bookmarksContainer');
+            document.getElementById('bookmarksSubtitle').textContent = bookmarked.length + ' saved entr' + (bookmarked.length !== 1 ? 'ies' : 'y') + ' for quick access';
+            updateBookmarkBadge();
+
+            if (bookmarked.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-bookmark"></i><h3>No bookmarks yet</h3><p>Click the bookmark icon on any entry to save it here for quick access.</p><button class="btn btn-primary" onclick="navigateTo(\'dashboard\')"><i class="fa-solid fa-house"></i> Browse Entries</button></div>';
+                return;
+            }
+
+            container.innerHTML = '<div class="entries-grid">' + bookmarked.map(entry => renderEntryCard(entry)).join('') + '</div>';
         }
 
         // ═══════════════════════════════════════
@@ -1419,6 +1489,7 @@
                 (tags ? '<div class="detail-tags">' + tags + '</div>' : '') +
                 '<div class="detail-actions">' +
                     '<button class="btn btn-secondary btn-sm" onclick="editEntry(\'' + entry.id + '\')"><i class="fa-solid fa-pen"></i> Edit</button>' +
+                    '<button class="btn ' + (entry.bookmarked ? 'btn-primary' : 'btn-secondary') + ' btn-sm" onclick="toggleBookmark(\'' + entry.id + '\')"><i class="fa-solid fa-bookmark"></i> ' + (entry.bookmarked ? 'Bookmarked' : 'Bookmark') + '</button>' +
                     '<button class="btn btn-danger btn-sm" onclick="deleteEntry(\'' + entry.id + '\')"><i class="fa-solid fa-trash-can"></i> Delete</button>' +
                 '</div>';
 
@@ -2698,6 +2769,7 @@
             renderWritingTip();
             calculateStreak();
             updateTrashBadge();
+            updateBookmarkBadge();
             checkTutorial();
             renderReminderUI();
             const reminder = loadReminder();

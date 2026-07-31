@@ -2021,6 +2021,27 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════
+   BOOKMARKED ENTRIES
+   ═══════════════════════════════════════════════════ */
+.pin-btn.bookmarked {
+    color: #eab308;
+}
+
+.pin-btn.bookmarked:hover {
+    color: #f59e0b;
+}
+
+.bookmark-count-badge {
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 10px;
+    margin-left: 4px;
+}
+
+/* ═══════════════════════════════════════════════════
    KEYBOARD SHORTCUTS HELP
    ═══════════════════════════════════════════════════ */
 .shortcuts-modal .modal-box {
