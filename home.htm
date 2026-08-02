@@ -72,6 +72,9 @@
                 <button class="nav-item" data-page="calendar" onclick="navigateTo('calendar')">
                     <i class="fa-solid fa-calendar-days"></i> Calendar
                 </button>
+                <button class="nav-item" data-page="tasks" onclick="navigateTo('tasks')">
+                    <i class="fa-solid fa-list-check"></i> Tasks <span class="task-count-badge" id="taskBadge" style="display:none;">0</span>
+                </button>
                 <button class="nav-item" data-page="analytics" onclick="navigateTo('analytics')">
                     <i class="fa-solid fa-chart-line"></i> Analytics
                 </button>
@@ -424,6 +427,44 @@
                 </div>
             </div>
 
+            <!-- Tasks Page -->
+            <div class="page" id="page-tasks">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Tasks</h1>
+                        <p class="page-subtitle" id="tasksSubtitle">Your to-do list</p>
+                    </div>
+                </div>
+
+                <div class="task-add-bar">
+                    <input type="text" class="task-input" id="taskInput" placeholder="Add a new task..." onkeydown="handleTaskKeydown(event)">
+                    <input type="date" class="task-due-input" id="taskDueDate" title="Due date (optional)">
+                    <select class="task-priority-input" id="taskPriority" title="Priority">
+                        <option value="medium">Med</option>
+                        <option value="low">Low</option>
+                        <option value="high">High</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="addTask()">
+                        <i class="fa-solid fa-plus"></i> Add
+                    </button>
+                </div>
+
+                <div id="taskSummary" style="margin-bottom:16px;"></div>
+
+                <div class="task-filter-row">
+                    <div class="task-tabs">
+                        <button class="task-tab active" data-filter="all" onclick="setTaskFilter('all')">All</button>
+                        <button class="task-tab" data-filter="active" onclick="setTaskFilter('active')">Active</button>
+                        <button class="task-tab" data-filter="done" onclick="setTaskFilter('done')">Done</button>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="clearCompletedTasks()">
+                        <i class="fa-solid fa-check-double"></i> Clear Completed
+                    </button>
+                </div>
+
+                <div id="tasksContainer" style="margin-top:20px;"></div>
+            </div>
+
             <!-- Analytics Page -->
             <div class="page" id="page-analytics">
                 <div class="page-header">
@@ -520,6 +561,7 @@
             <div class="shortcut-row"><span class="shortcut-desc">Go Back</span><span class="shortcut-key"><kbd>Esc</kbd></span></div>
             <div class="shortcut-row"><span class="shortcut-desc">Dashboard</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>H</kbd></span></div>
             <div class="shortcut-row"><span class="shortcut-desc">Calendar</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>L</kbd></span></div>
+            <div class="shortcut-row"><span class="shortcut-desc">Tasks</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>T</kbd></span></div>
             <div class="shortcut-row"><span class="shortcut-desc">Analytics</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>A</kbd></span></div>
             <div class="shortcut-row"><span class="shortcut-desc">Toggle Theme</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>D</kbd></span></div>
             <div class="modal-actions" style="margin-top:16px;">
@@ -542,9 +584,11 @@
         const FONT_KEY = 'diary_writing_font';
         const REMINDER_KEY = 'diary_reminder';
         const SORT_KEY = 'diary_sort';
+        const TASKS_KEY = 'diary_tasks';
 
         let entries = loadEntries();
         let trash = loadTrash();
+        let tasks = loadTasks();
         let currentTags = [];
         let currentImages = [];
         let currentPaperTheme = 'lined';
@@ -977,6 +1021,13 @@
 
         function saveTrash() { localStorage.setItem(TRASH_KEY, JSON.stringify(trash)); }
 
+        function loadTasks() {
+            try { return JSON.parse(localStorage.getItem(TASKS_KEY)) || []; }
+            catch { return []; }
+        }
+
+        function saveTasks() { localStorage.setItem(TASKS_KEY, JSON.stringify(tasks)); }
+
         function loadDraft() {
             try {
                 const draft = JSON.parse(localStorage.getItem(DRAFT_KEY));
@@ -1083,6 +1134,9 @@
             } else if (page === 'calendar') {
                 renderCalendar();
                 window.location.hash = 'calendar';
+            } else if (page === 'tasks') {
+                renderTasks();
+                window.location.hash = 'tasks';
             } else if (page === 'analytics') {
                 renderAnalytics();
                 window.location.hash = 'analytics';
@@ -1098,6 +1152,7 @@
             if (hash === 'bookmarks') { navigateTo('bookmarks'); return; }
             if (hash === 'new') { navigateTo('new-entry'); return; }
             if (hash === 'calendar') { navigateTo('calendar'); return; }
+            if (hash === 'tasks') { navigateTo('tasks'); return; }
             if (hash === 'analytics') { navigateTo('analytics'); return; }
             if (hash === 'trash') { navigateTo('trash'); return; }
             const match = hash.match(/^entry\/(.+)$/);
@@ -1923,6 +1978,150 @@
         }
 
         // ═══════════════════════════════════════
+        // TASKS / TO-DO LIST
+        // ═══════════════════════════════════════
+        let taskFilter = 'all';
+
+        window.addTask = function() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            if (!text) { showToast('Enter a task first', 'error'); input.focus(); return; }
+            tasks.unshift({
+                id: Date.now().toString(),
+                text: text,
+                done: false,
+                createdAt: new Date().toISOString(),
+                dueDate: document.getElementById('taskDueDate').value || '',
+                priority: document.getElementById('taskPriority').value || 'medium'
+            });
+            input.value = '';
+            document.getElementById('taskDueDate').value = '';
+            saveTasks();
+            renderTasks();
+            updateTaskBadge();
+            showToast('Task added', 'success');
+        };
+
+        window.handleTaskKeydown = function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); addTask(); }
+        };
+
+        window.toggleTask = function(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+            task.done = !task.done;
+            task.completedAt = task.done ? new Date().toISOString() : '';
+            saveTasks();
+            renderTasks();
+            updateTaskBadge();
+            showToast(task.done ? 'Task completed' : 'Task re-opened', 'success');
+        };
+
+        window.deleteTask = function(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            renderTasks();
+            updateTaskBadge();
+            showToast('Task deleted', 'success');
+        };
+
+        window.clearCompletedTasks = function() {
+            const done = tasks.filter(t => t.done).length;
+            if (done === 0) { showToast('No completed tasks', 'error'); return; }
+            showModal('Clear Completed Tasks?', 'This will permanently remove ' + done + ' completed task' + (done !== 1 ? 's' : '') + '.', () => {
+                tasks = tasks.filter(t => !t.done);
+                saveTasks();
+                renderTasks();
+                updateTaskBadge();
+                showToast('Completed tasks cleared', 'success');
+            });
+        };
+
+        window.setTaskFilter = function(filter) {
+            taskFilter = filter;
+            document.querySelectorAll('.task-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.filter === filter);
+            });
+            renderTasks();
+        };
+
+        function formatTaskDue(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr + 'T12:00:00');
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const due = new Date(d); due.setHours(0, 0, 0, 0);
+            const diff = Math.round((due - today) / 86400000);
+            if (diff === 0) return 'Due today';
+            if (diff === 1) return 'Due tomorrow';
+            if (diff === -1) return 'Due yesterday';
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            const doneCount = tasks.filter(t => t.done).length;
+            const activeCount = tasks.length - doneCount;
+            document.getElementById('tasksSubtitle').textContent = tasks.length === 0
+                ? 'Plan your day, one task at a time'
+                : activeCount + ' active · ' + doneCount + ' completed';
+
+            const summary = document.getElementById('taskSummary');
+            if (tasks.length === 0) {
+                summary.innerHTML = '';
+            } else {
+                const pct = Math.round(doneCount / tasks.length * 100);
+                summary.innerHTML = '<div class="task-summary-inner"><div class="task-summary-label">' + doneCount + ' of ' + tasks.length + ' done</div><div class="task-progress-track"><div class="task-progress-fill" style="width:' + pct + '%"></div></div><div class="task-summary-pct">' + pct + '%</div></div>';
+            }
+
+            let filtered = tasks;
+            if (taskFilter === 'active') filtered = tasks.filter(t => !t.done);
+            else if (taskFilter === 'done') filtered = tasks.filter(t => t.done);
+
+            filtered = [...filtered].sort((a, b) => {
+                if (a.done !== b.done) return a.done ? 1 : -1;
+                const da = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+                const db = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+                if (da !== db) return da - db;
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+
+            if (filtered.length === 0) {
+                const msg = tasks.length === 0
+                    ? '<div class="empty-state"><i class="fa-solid fa-list-check"></i><h3>No tasks yet</h3><p>Add your first task to start planning your day.</p></div>'
+                    : (taskFilter === 'active'
+                        ? '<div class="empty-state"><i class="fa-solid fa-circle-check"></i><h3>All done!</h3><p>No active tasks. Enjoy your free time.</p></div>'
+                        : '<div class="empty-state"><i class="fa-solid fa-list-check"></i><h3>Nothing completed yet</h3><p>Complete a task to see it here.</p></div>');
+                container.innerHTML = msg;
+                return;
+            }
+
+            container.innerHTML = filtered.map(task => {
+                const due = task.dueDate ? '<span class="task-meta-item"><i class="fa-regular fa-calendar"></i> ' + formatTaskDue(task.dueDate) + '</span>' : '';
+                const priority = task.priority && task.priority !== 'medium'
+                    ? '<span class="task-priority ' + task.priority + '">' + (task.priority === 'high' ? 'High' : 'Low') + '</span>' : '';
+                return '<div class="task-item' + (task.done ? ' done' : '') + '">' +
+                    '<button class="task-check' + (task.done ? ' checked' : '') + '" onclick="toggleTask(\'' + task.id + '\')" title="' + (task.done ? 'Mark as active' : 'Mark as done') + '">' + (task.done ? '<i class="fa-solid fa-check"></i>' : '') + '</button>' +
+                    '<div class="task-info">' +
+                        '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
+                        '<div class="task-meta">' + priority + due + '</div>' +
+                    '</div>' +
+                    '<button class="task-delete" onclick="deleteTask(\'' + task.id + '\')" title="Delete task"><i class="fa-solid fa-xmark"></i></button>' +
+                '</div>';
+            }).join('');
+        }
+
+        function updateTaskBadge() {
+            const badge = document.getElementById('taskBadge');
+            const count = tasks.filter(t => !t.done).length;
+            if (count > 0) {
+                badge.style.display = 'inline';
+                badge.textContent = count;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // ═══════════════════════════════════════
         // SEARCH & FILTER
         // ═══════════════════════════════════════
         window.handleSearch = function() { renderDashboard(); };
@@ -2423,10 +2622,11 @@
             if (entries.length === 0 && trash.length === 0) { showToast('No data to backup', 'error'); return; }
             const backup = {
                 format: 'index-diary-backup',
-                version: 1,
+                version: 2,
                 exportedAt: new Date().toISOString(),
                 entries: entries.map(e => ({...e})),
-                trash: trash.map(e => ({...e}))
+                trash: trash.map(e => ({...e})),
+                tasks: tasks.map(t => ({...t}))
             };
             const json = JSON.stringify(backup, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
@@ -2454,14 +2654,17 @@
                     }
                     const entryCount = data.entries.length;
                     const trashCount = (data.trash || []).length;
+                    const taskCount = (data.tasks || []).length;
                     showModal(
                         'Import Backup?',
-                        'This will replace all ' + entries.length + ' current entries and ' + trash.length + ' trash items with ' + entryCount + ' entries and ' + trashCount + ' trash items from the backup. This cannot be undone.',
+                        'This will replace all ' + entries.length + ' current entries, ' + trash.length + ' trash items, and ' + tasks.length + ' tasks with ' + entryCount + ' entries, ' + trashCount + ' trash items, and ' + taskCount + ' tasks from the backup. This cannot be undone.',
                         function() {
                             entries = data.entries;
                             trash = data.trash || [];
+                            tasks = data.tasks || [];
                             saveEntries();
                             saveTrash();
+                            saveTasks();
                             showToast('Backup imported! Reloading...', 'success');
                             setTimeout(function() { location.reload(); }, 1200);
                         }
@@ -2534,6 +2737,7 @@
                 else if (e.key === 'k' || e.key === 'K') { e.preventDefault(); if (!isInput) document.getElementById('searchInput').focus(); }
                 else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); navigateTo('dashboard'); }
                 else if (e.key === 'l' || e.key === 'L') { e.preventDefault(); navigateTo('calendar'); }
+                else if (e.key === 't' || e.key === 'T') { e.preventDefault(); navigateTo('tasks'); }
                 else if ((e.key === 'a' || e.key === 'A') && !isInput && !isContentEditable) { e.preventDefault(); navigateTo('analytics'); }
                 else if (e.key === 'd' || e.key === 'D') { e.preventDefault(); toggleTheme(); }
             }
@@ -2770,6 +2974,8 @@
             calculateStreak();
             updateTrashBadge();
             updateBookmarkBadge();
+            renderTasks();
+            updateTaskBadge();
             checkTutorial();
             renderReminderUI();
             const reminder = loadReminder();

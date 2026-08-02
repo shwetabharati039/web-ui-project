@@ -14,3 +14,4 @@
 | 8 | Rich Text Formatting | Bold, italic, bullet lists in entries | Pending |
 | 9 | Mood Line Chart | Visual mood trend over time (not just bars) | Done |
 | 10 | Location Tagging | Add place/location to entries | Pending |
+| 11 | Todo List | In-app task list with due dates, priority, filters | Done |
