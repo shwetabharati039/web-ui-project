@@ -50,7 +50,7 @@ select{
 button{
     width:100%;
     padding:12px 20px;
-    background:#a91f80;
+    background:#2563eb;
     border-radius:8px;
     border:none;
     cursor:pointer;
@@ -65,9 +65,9 @@ button{
     gap:8px;
 }
 button:hover{
-    background:#8a1a69;
+    background:#1d4ed8;
     transform:translateY(-1px);
-    box-shadow:0 4px 12px rgba(169,31,128,0.3);
+    box-shadow:0 4px 12px rgba(37,99,235,0.3);
 }
     p{
         font-size: 14.5px;

@@ -1747,7 +1747,7 @@
                     function parseColor(str) {
                         if (str.startsWith('#')) return hexToRgb(str);
                         const m = str.match(/(\d+)/g);
-                        return m ? m.map(Number) : [169, 31, 128];
+                        return m ? m.map(Number) : [37, 99, 235];
                     }
                     const [ar, ag, ab] = parseColor(accent);
 
@@ -2353,7 +2353,7 @@
             { id: 'aurora', label: 'Aurora', value: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 30%, #7c3aed 70%, #f43f5e 100%)' },
             { id: 'paper', label: 'Paper', value: 'repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(0,0,0,0.03) 24px, rgba(0,0,0,0.03) 25px), repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(0,0,0,0.02) 24px, rgba(0,0,0,0.02) 25px)' },
             { id: 'dots', label: 'Dots', value: 'radial-gradient(circle, var(--border) 1px, transparent 1px)', bgSize: '20px 20px' },
-            { id: 'waves', label: 'Waves', value: 'radial-gradient(ellipse at 10% 90%, rgba(169,31,128,0.08) 0%, transparent 50%), radial-gradient(ellipse at 90% 10%, rgba(102,126,234,0.08) 0%, transparent 50%)' }
+            { id: 'waves', label: 'Waves', value: 'radial-gradient(ellipse at 10% 90%, rgba(37,99,235,0.08) 0%, transparent 50%), radial-gradient(ellipse at 90% 10%, rgba(102,126,234,0.08) 0%, transparent 50%)' }
         ];
 
         function loadWallpaper() {
