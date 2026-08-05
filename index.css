@@ -49,12 +49,12 @@ select{
     }
 button{
     width:100%;
-    padding:12px 20px;
+    padding:10px 20px;
     background:#2563eb;
     border-radius:8px;
     border:none;
     cursor:pointer;
-    font-size:16px;
+    font-size:14px;
     color:#fff;
     font-weight:500;
     margin-bottom:20px;

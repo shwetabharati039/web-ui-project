@@ -261,11 +261,6 @@ body {
     color: var(--text-primary);
 }
 
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 13px;
-}
-
 /* Search Bar */
 .search-bar {
     display: flex;
@@ -458,9 +453,9 @@ body {
 .empty-state .btn {
     display: inline-flex;
     margin: 0 auto;
-    padding: 12px 28px;
+    padding: 10px 20px;
     border-radius: var(--radius-md);
-    font-size: 15px;
+    font-size: 14px;
 }
 
 /* Entry Form */
@@ -2281,11 +2276,11 @@ body {
 }
 
 .tutorial-btn {
-    padding: 8px 16px;
+    padding: 10px 20px;
     border-radius: var(--radius-sm);
     border: none;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     font-family: 'Inter', sans-serif;
     transition: all 0.2s;
@@ -2303,7 +2298,7 @@ body {
 .tutorial-btn-skip {
     background: transparent;
     color: var(--text-muted);
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .tutorial-btn-skip:hover {
@@ -2362,7 +2357,7 @@ body {
 }
 
 .tutorial-welcome-btn {
-    padding: 12px 28px;
+    padding: 10px 20px;
     border-radius: var(--radius-md);
     border: none;
     cursor: pointer;

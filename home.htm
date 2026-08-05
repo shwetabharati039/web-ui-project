@@ -19,8 +19,8 @@
             <h3 id="modalTitle">Delete Entry?</h3>
             <p id="modalMessage">This action cannot be undone.</p>
             <div class="modal-actions">
-                <button class="btn btn-secondary btn-sm" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-danger btn-sm" id="modalConfirmBtn" onclick="modalConfirmAction()">Delete</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-danger" id="modalConfirmBtn" onclick="modalConfirmAction()">Delete</button>
             </div>
         </div>
     </div>
@@ -33,15 +33,15 @@
             <div class="wallpaper-grid" id="wallpaperGrid"></div>
             <div class="wallpaper-upload-section">
                 <input type="file" id="wallpaperFileInput" accept="image/*" style="display:none;" onchange="handleWallpaperUpload(event)">
-                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('wallpaperFileInput').click()">
+                <button class="btn btn-secondary" onclick="document.getElementById('wallpaperFileInput').click()">
                     <i class="fa-solid fa-upload"></i> Upload Custom Image
                 </button>
-                <button class="btn btn-ghost btn-sm" onclick="clearWallpaper()">
+                <button class="btn btn-ghost" onclick="clearWallpaper()">
                     <i class="fa-solid fa-xmark"></i> Remove Wallpaper
                 </button>
             </div>
             <div class="modal-actions" style="margin-top:12px;">
-                <button class="btn btn-secondary btn-sm" onclick="closeWallpaperModal()">Done</button>
+                <button class="btn btn-secondary" onclick="closeWallpaperModal()">Done</button>
             </div>
         </div>
     </div>
@@ -218,10 +218,10 @@
                     <div class="prompt-label">Today's Writing Prompt</div>
                     <div class="prompt-text" id="promptText"></div>
                     <div class="prompt-actions">
-                        <button class="btn btn-primary btn-sm" onclick="usePrompt()">
+                        <button class="btn btn-primary" onclick="usePrompt()">
                             <i class="fa-solid fa-pen"></i> Use This Prompt
                         </button>
-                        <button class="btn btn-ghost btn-sm" onclick="refreshPrompt()">
+                        <button class="btn btn-ghost" onclick="refreshPrompt()">
                             <i class="fa-solid fa-shuffle"></i> Another One
                         </button>
                     </div>
@@ -242,7 +242,7 @@
                     <input type="date" class="filter-input" id="dateFrom" onchange="handleSearch()">
                     <span style="color:var(--text-muted); font-size:13px;">to</span>
                     <input type="date" class="filter-input" id="dateTo" onchange="handleSearch()">
-                    <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+                    <button class="btn btn-ghost" onclick="clearFilters()">Clear</button>
                 </div>
 
                 <div class="sort-row">
@@ -399,7 +399,7 @@
             <div class="page" id="page-detail">
                 <div class="detail-header">
                     <div class="detail-back">
-                        <button class="btn btn-ghost btn-sm" onclick="navigateTo('dashboard')">
+                        <button class="btn btn-ghost" onclick="navigateTo('dashboard')">
                             <i class="fa-solid fa-arrow-left"></i> Back
                         </button>
                     </div>
@@ -457,7 +457,7 @@
                         <button class="task-tab" data-filter="active" onclick="setTaskFilter('active')">Active</button>
                         <button class="task-tab" data-filter="done" onclick="setTaskFilter('done')">Done</button>
                     </div>
-                    <button class="btn btn-ghost btn-sm" onclick="clearCompletedTasks()">
+                    <button class="btn btn-ghost" onclick="clearCompletedTasks()">
                         <i class="fa-solid fa-check-double"></i> Clear Completed
                     </button>
                 </div>
@@ -512,7 +512,7 @@
                         <h1 class="page-title">Trash</h1>
                         <p class="page-subtitle" id="trashSubtitle">Deleted entries are kept for 30 days</p>
                     </div>
-                    <button class="btn btn-danger btn-sm" onclick="emptyTrash()">
+                    <button class="btn btn-danger" onclick="emptyTrash()">
                         <i class="fa-solid fa-trash-can"></i> Empty Trash
                     </button>
                 </div>
@@ -565,7 +565,7 @@
             <div class="shortcut-row"><span class="shortcut-desc">Analytics</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>A</kbd></span></div>
             <div class="shortcut-row"><span class="shortcut-desc">Toggle Theme</span><span class="shortcut-key"><kbd>Ctrl</kbd><kbd>D</kbd></span></div>
             <div class="modal-actions" style="margin-top:16px;">
-                <button class="btn btn-secondary btn-sm" onclick="closeShortcutsModal()">Close</button>
+                <button class="btn btn-secondary" onclick="closeShortcutsModal()">Close</button>
             </div>
         </div>
     </div>
@@ -1543,9 +1543,9 @@
                 '<div class="detail-content detail-paper-wrap paper-' + currentPaperTheme + '" style="margin-top:28px;' + detailFontStyle + '">' + sanitizeHtml(entry.content) + '</div>' +
                 (tags ? '<div class="detail-tags">' + tags + '</div>' : '') +
                 '<div class="detail-actions">' +
-                    '<button class="btn btn-secondary btn-sm" onclick="editEntry(\'' + entry.id + '\')"><i class="fa-solid fa-pen"></i> Edit</button>' +
-                    '<button class="btn ' + (entry.bookmarked ? 'btn-primary' : 'btn-secondary') + ' btn-sm" onclick="toggleBookmark(\'' + entry.id + '\')"><i class="fa-solid fa-bookmark"></i> ' + (entry.bookmarked ? 'Bookmarked' : 'Bookmark') + '</button>' +
-                    '<button class="btn btn-danger btn-sm" onclick="deleteEntry(\'' + entry.id + '\')"><i class="fa-solid fa-trash-can"></i> Delete</button>' +
+                    '<button class="btn btn-secondary" onclick="editEntry(\'' + entry.id + '\')"><i class="fa-solid fa-pen"></i> Edit</button>' +
+                    '<button class="btn ' + (entry.bookmarked ? 'btn-primary' : 'btn-secondary') + '" onclick="toggleBookmark(\'' + entry.id + '\')"><i class="fa-solid fa-bookmark"></i> ' + (entry.bookmarked ? 'Bookmarked' : 'Bookmark') + '</button>' +
+                    '<button class="btn btn-danger" onclick="deleteEntry(\'' + entry.id + '\')"><i class="fa-solid fa-trash-can"></i> Delete</button>' +
                 '</div>';
 
             // Fix lightbox for images
@@ -1926,8 +1926,8 @@
                     '<span class="trash-entry-mood">' + (e.mood || '📝') + '</span>' +
                     '<div class="trash-entry-info"><div class="trash-entry-title">' + escapeHtml(e.title) + '</div><div class="trash-entry-date">' + dateStr + ' · ' + (e.wordCount || 0) + ' words · expires in ' + daysLeft + ' days</div></div>' +
                     '<div class="trash-entry-actions">' +
-                        '<button class="btn btn-secondary btn-sm" onclick="restoreEntry(\'' + e.id + '\')"><i class="fa-solid fa-rotate-left"></i> Restore</button>' +
-                        '<button class="btn btn-danger btn-sm" onclick="permanentDelete(\'' + e.id + '\')"><i class="fa-solid fa-xmark"></i></button>' +
+                        '<button class="btn btn-secondary" onclick="restoreEntry(\'' + e.id + '\')"><i class="fa-solid fa-rotate-left"></i> Restore</button>' +
+                        '<button class="btn btn-danger" onclick="permanentDelete(\'' + e.id + '\')"><i class="fa-solid fa-xmark"></i></button>' +
                     '</div></div>';
             }).join('');
         }
