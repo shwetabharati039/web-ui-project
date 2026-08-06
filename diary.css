@@ -3223,6 +3223,138 @@ body {
     color: var(--danger);
 }
 
+.task-duration-input,
+.task-eta-input {
+    padding: 12px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    cursor: pointer;
+}
+
+.task-duration-input:focus,
+.task-eta-input:focus {
+    border-color: var(--border-focus);
+}
+
+.task-settings-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.task-settings-row label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.task-settings-row label i {
+    color: var(--accent);
+}
+
+.task-settings-input {
+    width: 64px;
+    padding: 5px 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.task-settings-input:focus {
+    border-color: var(--border-focus);
+}
+
+.task-danger-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: rgba(192, 57, 43, 0.1);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--danger);
+}
+
+.task-danger-banner > i {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.task-danger-banner strong {
+    color: var(--danger);
+}
+
+.task-eta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.task-eta.upcoming {
+    color: var(--accent);
+}
+
+.task-eta.overdue {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.task-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.task-rating.good {
+    background: rgba(46, 204, 113, 0.12);
+    color: var(--success);
+}
+
+.task-rating.bad {
+    background: rgba(231, 76, 60, 0.12);
+    color: var(--danger);
+}
+
+.task-rating.neutral {
+    background: var(--bg-input);
+    color: var(--text-muted);
+}
+
+.task-item.danger {
+    border-color: var(--danger);
+    background: rgba(192, 57, 43, 0.05);
+}
+
+.task-count-badge.danger {
+    background: var(--danger);
+}
+
 @media (max-width: 768px) {
     .task-add-bar {
         flex-direction: column;
@@ -3230,7 +3362,153 @@ body {
 
     .task-input,
     .task-due-input,
+    .task-duration-input,
+    .task-eta-input,
     .task-priority-input {
         width: 100%;
     }
+}
+
+/* ═══════════════════════════════════════════════════
+   INDEX CRAFT — VOXEL SANDBOX GAME
+   ═══════════════════════════════════════════════════ */
+.game-hud {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.game-hud-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.game-hud-item i {
+    color: var(--accent);
+}
+
+.game-hud-item span {
+    color: var(--accent);
+    min-width: 20px;
+}
+
+.game-hud-hint {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.game-sound-btn {
+    margin-left: auto;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.game-sound-btn:hover {
+    border-color: var(--border-focus);
+    color: var(--accent);
+}
+
+.game-frame {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    background: #0b1026;
+    touch-action: none;
+    cursor: crosshair;
+}
+
+.game-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(7, 10, 30, 0.72);
+    backdrop-filter: blur(3px);
+}
+
+.game-overlay-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: 28px 34px;
+    max-width: 360px;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.game-overlay-card h2 {
+    margin: 0 0 10px 0;
+    font-size: 22px;
+}
+
+.game-overlay-card p {
+    margin: 0 0 18px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.game-overlay-card .btn {
+    width: 100%;
+}
+
+.fps-fire-btn {
+    display: none;
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.35);
+    background: radial-gradient(circle at 35% 30%, rgba(255, 120, 60, 0.95), rgba(180, 40, 20, 0.9));
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    z-index: 5;
+}
+
+.fps-fire-btn:active {
+    transform: scale(0.92);
+    filter: brightness(1.2);
 }
