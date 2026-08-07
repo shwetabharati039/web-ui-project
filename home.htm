@@ -3212,30 +3212,39 @@
         // ═══════════════════════════════════════
         // ═══════════════════════════════════════
         // INDEX CRAFT — VOXEL SANDBOX (RTX-STYLE PATH TRACER)
+        // A Minecraft-style voxel sandbox where the world is rendered
+        // with a CPU path tracer (accumulated progressive sampling).
         // ═══════════════════════════════════════
-        const MC_SOUND_KEY = 'diary_game_sound';
-        let gameInstance = null;
-        let gameRafId = null;
-        let gameAudio = null;
-        let mcSoundOn = false;
+        // Game-wide state and settings.
+        const MC_SOUND_KEY = 'diary_game_sound';   // localStorage key for the sound toggle
+        let gameInstance = null;                    // the active game object (null when idle)
+        let gameRafId = null;                       // requestAnimationFrame id for the render loop
+        let gameAudio = null;                       // shared Web Audio API AudioContext
+        let mcSoundOn = false;                      // whether sound effects are enabled
 
+        // Block type ids stored in the WORLD byte array.
         const BLK = { AIR: 0, GRASS: 1, DIRT: 2, STONE: 3, SAND: 4, LOG: 5, LEAVES: 6, PLANKS: 7, WATER: 8, GLASS: 9, BRICK: 10, BEDROCK: 11 };
+        // The 9 selectable block types shown in the hotbar (keyboard keys 1-9).
         const HOTBAR = [BLK.GRASS, BLK.DIRT, BLK.STONE, BLK.LOG, BLK.PLANKS, BLK.BRICK, BLK.GLASS, BLK.SAND, BLK.LEAVES];
-        const WATER_LEVEL = 12;
-        const WORLD_SX = 64, WORLD_SY = 32, WORLD_SZ = 64;
-        const FOV = (75 * Math.PI) / 180;
-        const tanF = Math.tan(FOV / 2);
+        const WATER_LEVEL = 12;                     // water fills the world up to this y height
+        const WORLD_SX = 64, WORLD_SY = 32, WORLD_SZ = 64;  // world dimensions in blocks (x, y, z)
+        const FOV = (75 * Math.PI) / 180;           // vertical field of view in radians
+        const tanF = Math.tan(FOV / 2);             // half-FOV tangent used when projecting rays
 
-        let WORLD = null;
+        let WORLD = null;                           // flat Uint8Array holding every block id
 
+        // Direction of the sun; used for sunlight and shadows.
         const SUN = norm3(0.5, 0.7, 0.4);
         const sunX = SUN[0], sunY = SUN[1], sunZ = SUN[2];
 
+        // Normalizes a 3D vector to unit length.
         function norm3(x, y, z) {
             const l = 1 / Math.hypot(x, y, z);
             return [x * l, y * l, z * l];
         }
 
+        // Seeded pseudo-random number generator (returns values in [0, 1)).
+        // Deterministic per seed so frames are reproducible during accumulation.
         function mulberry32(a) {
             return function() {
                 a |= 0;
@@ -3246,6 +3255,7 @@
             };
         }
 
+        // Deterministic integer hashes used to build value noise. 2D and 3D variants.
         function hash2(ix, iz) {
             let h = Math.imul(ix | 0, 374761393) ^ Math.imul(iz | 0, 668265263);
             h = Math.imul(h ^ (h >>> 13), 1274126177);
@@ -3259,6 +3269,7 @@
             return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
         }
 
+        // 2D value noise: smoothly interpolates random values at integer grid corners.
         function vnoise(x, z) {
             const ix = Math.floor(x), iz = Math.floor(z);
             const fx = x - ix, fz = z - iz;
@@ -3267,12 +3278,16 @@
             return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
         }
 
+        // Fractal Brownian Motion: sums several octaves of noise for natural-looking terrain.
         function fbm(x, z) {
             return vnoise(x, z) * 0.55 + vnoise(x * 2.1, z * 2.1) * 0.28 + vnoise(x * 4.3, z * 4.3) * 0.12 + vnoise(x * 8.6, z * 8.6) * 0.05;
         }
 
+        // Maps a 3D block coordinate (x, y, z) to a flat array index.
         function idx(x, y, z) { return (y * WORLD_SZ + z) * WORLD_SX + x; }
 
+        // Generates the entire voxel world: terrain heightfield, sand/grass/stone layers,
+        // water, and randomly scattered trees.
         function buildWorld() {
             WORLD = new Uint8Array(WORLD_SX * WORLD_SY * WORLD_SZ);
             const trees = [];
@@ -3314,6 +3329,7 @@
             }
         }
 
+        // Returns the block id at a coordinate; out-of-bounds gives AIR/BEDROCK sentinels.
         function blockAt(x, y, z) {
             if (x < 0 || x >= WORLD_SX || z < 0 || z >= WORLD_SZ) return BLK.AIR;
             if (y < 0) return BLK.BEDROCK;
@@ -3321,8 +3337,11 @@
             return WORLD[idx(x, y, z)];
         }
 
+        // A block is solid if it blocks movement (everything except air and water).
         function isSolid(id) { return id !== BLK.AIR && id !== BLK.WATER; }
 
+        // Axis-aligned box collision test for the player's bounding box (0.56 wide, 1.8 tall).
+        // Returns true if the box overlaps any solid block or leaves the world bounds.
         function collides(g, x, y, z) {
             if (x < 0.5 || x >= WORLD_SX - 0.5 || z < 0.5 || z >= WORLD_SZ - 0.5) return true;
             if (y < 0) return true;
@@ -3342,6 +3361,10 @@
             return false;
         }
 
+        // DDA (Digital Differential Analyzer) voxel ray cast.
+        // Steps through the grid along the ray and returns the first solid block hit,
+        // the entry face normal (nx, ny, nz), and the travel distance. skipId lets rays
+        // pass through a particular block type (used for water/glass transparency).
         function traceRay(ox, oy, oz, dx, dy, dz, maxDist, skipId) {
             let mx = Math.floor(ox), my = Math.floor(oy), mz = Math.floor(oz);
             const invX = dx === 0 ? Infinity : Math.abs(1 / dx);
@@ -3374,6 +3397,8 @@
             return { hit: false, x: mx, y: my, z: mz, id: BLK.AIR, nx: nx, ny: ny, nz: nz, t: t, dist: t };
         }
 
+        // Computes the sky color for a ray direction: a gradient that brightens toward
+        // the horizon, plus the sun disk and a warm halo when looking toward the sun.
         function skyCol(dx, dy, dz) {
             const t = Math.max(0, Math.min(1, dy * 0.5 + 0.5));
             const tz = Math.pow(t, 1.5);
@@ -3390,6 +3415,7 @@
             return [r, g, b];
         }
 
+        // Base RGB albedo of each block type (used by GI bounces and particles).
         function blockBase(id) {
             if (id === BLK.GRASS) return [0.49, 0.74, 0.29];
             if (id === BLK.DIRT) return [0.45, 0.34, 0.23];
@@ -3404,6 +3430,9 @@
             return [0.3, 0.3, 0.32];
         }
 
+        // Per-face block color: adds deterministic per-block variation plus simple
+        // procedural textures (log rings, plank stripes, brick mortar, etc.).
+        // face: 1 = side, 2 = top, 3 = bottom. u/v are the in-cell texture coordinates.
         function blockCol(id, face, bx, by, bz, u, v) {
             let r, g, b;
             const h = hash3(bx, by, bz);
@@ -3451,17 +3480,24 @@
             return [r, g, b];
         }
 
+        // Ambient occlusion: casts a short ray straight up and dims the surface
+        // based on how soon that ray hits an overhanging block.
         function skyAO(x, y, z) {
             const res = traceRay(x, y, z, 0, 1, 0, 6, 0);
             if (!res.hit) return 1;
             return 0.2 + 0.8 * Math.min(1, res.dist / 5);
         }
 
+        // Sun shadow: traces a long ray toward the sun; if it hits anything,
+        // the point falls in shadow and is dimmed to 35% brightness.
         function sunShadow(x, y, z, nx, ny, nz) {
             const res = traceRay(x + nx * 0.01, y + ny * 0.01, z + nz * 0.01, sunX, sunY, sunZ, 80, 0);
             return res.hit ? 0.35 : 1;
         }
 
+        // Single indirect-light (GI) sample: picks a random direction on the
+        // hemisphere above the surface, traces it, and returns the bounced light
+        // color (sky light or the color of whatever block was hit).
         function giSample(px, py, pz, nx, ny, nz, rng) {
             const r1 = rng(), r2 = rng();
             const a = 2 * Math.PI * r1;
@@ -3482,6 +3518,8 @@
             return [c[0] * 0.12, c[1] * 0.12, c[2] * 0.12];
         }
 
+        // Entry point for shading a primary ray: traces it through the world and
+        // returns the final color. Water is skipped when the camera is inside water.
         function shadeRay(ox, oy, oz, dx, dy, dz, camInWater, depth, rng) {
             const skipId = camInWater ? BLK.WATER : BLK.AIR;
             const res = traceRay(ox, oy, oz, dx, dy, dz, 90, skipId);
@@ -3489,6 +3527,9 @@
             return shadeBlock(res, dx, dy, dz, camInWater, depth, rng);
         }
 
+        // Shades a ray that hit a block. Handles water refraction/absorption,
+        // glass reflection + transmission (recursive), and opaque surfaces lit by
+        // diffuse sunlight, sky ambient occlusion, and bounced GI, then applies fog.
         function shadeBlock(res, dx, dy, dz, camInWater, depth, rng) {
             if (res.id === BLK.WATER) {
                 const ndot = dx * res.nx + dy * res.ny + dz * res.nz;
@@ -3552,12 +3593,15 @@
             return [r, g, b];
         }
 
+        // Traces the transmitted ray through a glass block (skipping glass) for refraction.
         function shadeGlassRay(ox, oy, oz, dx, dy, dz, camInWater, depth, rng) {
             const res = traceRay(ox, oy, oz, dx, dy, dz, 90, BLK.GLASS);
             if (!res.hit) return skyCol(dx, dy, dz);
             return shadeBlock(res, dx, dy, dz, camInWater, depth, rng);
         }
 
+        // (Re)sizes the low-resolution render target and resets the accumulated buffer.
+        // The scene renders at 1/scale resolution, then gets upscaled to the canvas.
         function resizeRT(g) {
             const rw = Math.max(96, Math.round(g.canvas.width / g.scale));
             const rh = Math.max(54, Math.round(g.canvas.height / g.scale));
@@ -3572,6 +3616,8 @@
             g.dirty = true;
         }
 
+        // Converts the accumulated (linear, un-clamped) samples into a displayable image:
+        // averages over sampleN, applies gamma correction, clamps highlights, and blits up.
         function composite(g) {
             const data = g.img.data;
             const acc = g.acc, n = g.sampleN || 1;
@@ -3591,6 +3637,9 @@
             g.ctx.drawImage(g.rtCanvas, 0, 0, rw, rh, 0, 0, g.canvas.width, g.canvas.height);
         }
 
+        // Renders one full frame of the scene into the accumulation buffer.
+        // For each output pixel it builds a camera ray (yaw/pitch basis) and shades it,
+        // progressively accumulating samples so the image converges over time.
         function renderWorld(g) {
             const rw = g.rw, rh = g.rh;
             const cam = g.cam;
@@ -3620,12 +3669,16 @@
             composite(g);
         }
 
+        // Returns the game canvas element.
         function getGameCanvas() { return document.getElementById('gameCanvas'); }
 
+        // Reads the persisted sound preference from localStorage.
         function gameAudioEnabled() {
             try { mcSoundOn = localStorage.getItem(MC_SOUND_KEY) === '1'; } catch (e) { mcSoundOn = false; }
         }
 
+        // Lazily creates and resumes the shared AudioContext (browsers require a
+        // user gesture before audio can start, so this is called on first interaction).
         function ensureGameAudio() {
             try {
                 if (!gameAudio) gameAudio = new (window.AudioContext || window.webkitAudioContext)();
@@ -3633,6 +3686,8 @@
             } catch (e) {}
         }
 
+        // Plays a short synthesized sound effect using oscillators and noise buffers.
+        // Supported kinds: 'break', 'place', 'jump', 'click'.
         function playFx(kind) {
             if (!mcSoundOn || !gameAudio) return;
             const ac = gameAudio;
@@ -3672,6 +3727,7 @@
             else if (kind === 'click') { osc(500, 0.04, 'square', 0.06); }
         }
 
+        // Global sound toggle exposed to the UI button; persists and updates the icon.
         window.toggleGameSound = function() {
             mcSoundOn = !mcSoundOn;
             try { localStorage.setItem(MC_SOUND_KEY, mcSoundOn ? '1' : '0'); } catch (e) {}
@@ -3680,6 +3736,7 @@
             if (mcSoundOn) { ensureGameAudio(); playFx('click'); }
         };
 
+        // Shows/hides the center overlay card. state is 'hidden', 'menu', or 'paused'.
         function setGameOverlay(state) {
             const overlay = document.getElementById('gameOverlay');
             const title = document.getElementById('gameOverlayTitle');
@@ -3698,6 +3755,9 @@
             }
         }
 
+        // Creates a new game object: sizes the canvas, sets the camera (menu mode
+        // uses a scenic overview camera, play mode starts at the default spawn),
+        // and initializes player/input/render state.
         function createGame(menuMode) {
             const canvas = getGameCanvas();
             if (!canvas) return null;
@@ -3727,6 +3787,8 @@
             return g;
         }
 
+        // Marks the frame dirty (requires a fresh accumulation pass) whenever the
+        // camera position or orientation changes since the previous frame.
         function updateCameraForRender(g) {
             const c = g.cam;
             const pc = g.prevCam;
@@ -3738,12 +3800,15 @@
             }
         }
 
+        // Clears the accumulation buffer so path tracing restarts from a clean frame.
         function resetAcc(g) {
             g.acc.fill(0);
             g.sampleN = 0;
             g.dirty = false;
         }
 
+        // Projects a world-space point onto the canvas using the current camera
+        // (forward/right/up basis). Returns null if the point is behind the camera.
         function proj(g, wx, wy, wz) {
             const c = g.cam;
             const cp = Math.cos(c.pitch), sp = Math.sin(c.pitch);
@@ -3760,6 +3825,8 @@
             return { x: g.canvas.width / 2 + xs * sc, y: g.canvas.height / 2 - ys * sc, d: depth };
         }
 
+        // Ray-casts from the camera along the look direction up to reach distance.
+        // Returns the targeted block cell plus the empty cell to place into (face-normal offset).
         function getTarget(g) {
             const c = g.cam;
             const dx = Math.cos(c.yaw) * Math.cos(c.pitch), dy = Math.sin(c.pitch), dz = Math.sin(c.yaw) * Math.cos(c.pitch);
@@ -3768,6 +3835,7 @@
             return { hit: { x: res.x, y: res.y, z: res.z }, place: { x: res.x + res.nx, y: res.y + res.ny, z: res.z + res.nz } };
         }
 
+        // Breaks the targeted block (sets it to air) and spawns debris particles.
         function breakBlock(g) {
             const tgt = getTarget(g);
             if (!tgt) return;
@@ -3779,6 +3847,8 @@
             spawnBreakParticles(g, tgt.hit, id);
         }
 
+        // Places the currently selected hotbar block into the empty cell in front of
+        // the targeted face, unless it would overlap the player's body.
         function placeBlock(g) {
             const tgt = getTarget(g);
             if (!tgt) return;
@@ -3795,6 +3865,7 @@
             playFx('place');
         }
 
+        // Creates a burst of small colored debris particles when a block is broken.
         function spawnBreakParticles(g, cell, id) {
             const col = blockBase(id);
             const colStr = 'rgb(' + Math.round(col[0] * 255) + ',' + Math.round(col[1] * 255) + ',' + Math.round(col[2] * 255) + ')';
@@ -3813,6 +3884,8 @@
             }
         }
 
+        // Moves the player one axis at a time, resolving collisions per axis so the
+        // player can slide along walls and floors instead of getting stuck.
         function movePlayer(g, vx, vy, vz, dt) {
             const cam = g.cam;
             const nx = cam.x + vx * dt, ny = cam.y + vy * dt, nz = cam.z + vz * dt;
@@ -3827,6 +3900,8 @@
             if (!collides(g, cam.x, cam.y, nz)) cam.z = nz;
         }
 
+        // Applies player physics each tick: reads WASD/arrow keys for horizontal
+        // movement (relative to yaw), gravity with water drag, and jumping.
         function updatePlayer(g, dt) {
             const k = g.keys, c = g.cam;
             const cy = Math.cos(c.yaw), sy = Math.sin(c.yaw);
@@ -3847,6 +3922,7 @@
             movePlayer(g, mx * speed * drag, g.velY, mz * speed * drag, dt);
         }
 
+        // Per-tick game logic: player physics, block-breaking repeat, and particle animation.
         function updateGame(g, dt) {
             updatePlayer(g, dt);
             g.breakCd -= dt;
@@ -3863,6 +3939,7 @@
             }
         }
 
+        // Draws a wireframe box around a block cell using its 8 projected corners.
         function drawBlockOutline(g, cell, color) {
             const pts = [];
             for (let i = 0; i < 8; i++) {
@@ -3883,6 +3960,8 @@
             ctx.stroke();
         }
 
+        // Draws the 9-slot hotbar along the bottom, highlighting the selected slot
+        // and showing a swatch of each block type's color.
         function drawHotbar(g) {
             const ctx = g.ctx, W = g.canvas.width, H = g.canvas.height;
             const slots = 9, sw = 44, sh = 44, gap = 4;
@@ -3905,6 +3984,7 @@
             ctx.textAlign = 'left';
         }
 
+        // Draws block-debris particles as fading squares scaled by depth.
         function drawParticles(g) {
             const ctx = g.ctx;
             for (let i = 0; i < g.particles.length; i++) {
@@ -3919,6 +3999,8 @@
             ctx.globalAlpha = 1;
         }
 
+        // Draws 2D UI on top of the rendered scene: crosshair, targeted-block outline,
+        // debris particles, and the hotbar while playing.
         function drawOverlays(g) {
             const ctx = g.ctx, W = g.canvas.width, H = g.canvas.height;
             const cx = W / 2, cy = H / 2;
@@ -3938,6 +4020,8 @@
             if (g.state === 'playing') drawHotbar(g);
         }
 
+        // Main render loop. Tracks frame time, adaptively adjusts the render scale to
+        // hold the target framerate, updates the game, then renders and draws the UI.
         function loop(t) {
             const g = gameInstance;
             if (!g || !g.running) return;
@@ -3966,6 +4050,7 @@
             gameRafId = requestAnimationFrame(loop);
         }
 
+        // Requests browser pointer-lock so the mouse drives camera look.
         function requestPointerLock() {
             const c = getGameCanvas();
             if (c && c.requestPointerLock) {
@@ -3973,6 +4058,8 @@
             }
         }
 
+        // Starts a fresh play session: creates the game, drops the player on the
+        // highest solid block at world center, and begins the render loop.
         window.startGame = function() {
             const g = createGame(false);
             if (!g) return;
@@ -3996,6 +4083,7 @@
             gameRafId = requestAnimationFrame(loop);
         };
 
+        // Pauses an active game, releases the pointer lock, and shows the pause overlay.
         window.pauseGame = function() {
             const g = gameInstance;
             if (!g || g.state !== 'playing') return;
@@ -4005,6 +4093,7 @@
             setGameOverlay('paused');
         };
 
+        // Resumes a paused game and re-locks the pointer.
         window.resumeGame = function() {
             const g = gameInstance;
             if (!g || g.state !== 'paused') return;
@@ -4013,6 +4102,7 @@
             requestPointerLock();
         };
 
+        // Toggles between playing and paused (triggered by the P key / Esc).
         window.togglePause = function() {
             const g = gameInstance;
             if (!g) return;
@@ -4020,12 +4110,15 @@
             else if (g.state === 'paused') resumeGame();
         };
 
+        // Overlay button action: resumes if paused, otherwise starts a new game.
         window.gameOverlayAction = function() {
             const g = gameInstance;
             if (g && g.state === 'paused') resumeGame();
             else startGame();
         };
 
+        // Tears down the game when the user navigates away from the game page:
+        // pauses, stops the loop, releases pointer lock, and cancels the RAF.
         function leaveGamePage() {
             const g = gameInstance;
             if (!g) return;
@@ -4037,6 +4130,8 @@
             gameRafId = null;
         }
 
+        // Prepares the game page when navigated to: sizes the canvas, builds the world
+        // on first visit, resumes a paused session, or shows the scenic menu backdrop.
         function openGamePage() {
             gameAudioEnabled();
             const canvas = getGameCanvas();
@@ -4072,6 +4167,7 @@
             gameRafId = requestAnimationFrame(loop);
         }
 
+        // Auto-pauses whenever the browser releases the pointer lock while playing.
         document.addEventListener('pointerlockchange', function() {
             const g = gameInstance;
             if (!g) return;
@@ -4079,10 +4175,14 @@
             if (!locked && g.state === 'playing' && g.running) pauseGame();
         });
 
+        // Wires up all mouse / wheel / touch handlers for camera look, breaking,
+        // placing, and hotbar scrolling on the game canvas.
         function setupGameCanvasEvents() {
             const canvas = getGameCanvas();
             if (!canvas) return;
 
+            // Mouse look: uses raw movement deltas while pointer-locked, otherwise
+            // drag-look from the last pointer position.
             canvas.addEventListener('mousemove', function(e) {
                 const g = gameInstance;
                 if (!g || !g.running) return;
@@ -4101,6 +4201,8 @@
                 }
             });
 
+            // Left click holds to break blocks; right click places a block.
+            // Without pointer lock, the drag starts a drag-look.
             canvas.addEventListener('mousedown', function(e) {
                 const g = gameInstance;
                 if (!g || !g.running || g.state !== 'playing') return;
@@ -4115,14 +4217,17 @@
                 e.preventDefault();
             });
 
+            // Stops block-breaking when the left button is released anywhere.
             window.addEventListener('mouseup', function(e) {
                 const g = gameInstance;
                 if (!g) return;
                 if (e.button === 0) g.breakHeld = false;
             });
 
+            // Prevents the browser context menu on right-click within the game.
             canvas.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
+            // Scroll wheel cycles the selected hotbar slot.
             canvas.addEventListener('wheel', function(e) {
                 const g = gameInstance;
                 if (!g || !g.running || g.state !== 'playing') return;
@@ -4130,6 +4235,7 @@
                 e.preventDefault();
             }, { passive: false });
 
+            // Touch start: begin drag-look and remember the start position.
             canvas.addEventListener('touchstart', function(e) {
                 const g = gameInstance;
                 if (!g || !g.running || g.state !== 'playing') return;
@@ -4142,6 +4248,7 @@
                 e.preventDefault();
             }, { passive: false });
 
+            // Touch move: drag to look around.
             canvas.addEventListener('touchmove', function(e) {
                 const g = gameInstance;
                 if (!g || !g.dragLook) return;
@@ -4155,6 +4262,7 @@
                 e.preventDefault();
             }, { passive: false });
 
+            // Touch end: if it was a quick tap (no dragging), place a block at target.
             canvas.addEventListener('touchend', function(e) {
                 const g = gameInstance;
                 if (!g) return;
@@ -4165,6 +4273,7 @@
                 }
             });
 
+            // Mobile "fire" button: hold to break, release to stop.
             const fb = document.getElementById('fpsFireBtn');
             if (fb) {
                 fb.addEventListener('pointerdown', function(e) {
@@ -4183,6 +4292,8 @@
             }
         }
 
+        // Keyboard down: P toggles pause, 1-9 selects a hotbar slot, and WASD /
+        // arrows / space are recorded for movement. Prevents page scroll on game keys.
         function gameKeyDown(e) {
             const g = gameInstance;
             if (!g || !g.running) return;
@@ -4193,6 +4304,7 @@
             if ([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.key) !== -1) e.preventDefault();
         }
 
+        // Clears the pressed state of a released key.
         function gameKeyUp(e) {
             const g = gameInstance;
             if (!g) return;
