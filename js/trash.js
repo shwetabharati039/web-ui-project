@@ -1,0 +1,80 @@
+// ═══════════════════════════════════════
+// TRASH
+// ═══════════════════════════════════════
+function renderTrash() {
+    // Auto-expire old trash (30 days)
+    const now = Date.now();
+    trash = trash.filter(e => {
+        if (!e.deletedAt) return true;
+        return (now - new Date(e.deletedAt).getTime()) < 30 * 86400000;
+    });
+    saveTrash();
+    updateTrashBadge();
+
+    const container = document.getElementById('trashContainer');
+    document.getElementById('trashSubtitle').textContent = trash.length + ' deleted entr' + (trash.length !== 1 ? 'ies' : 'y') + ' (kept for 30 days)';
+
+    if (trash.length === 0) {
+        container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-trash-can"></i><h3>Trash is empty</h3><p>Deleted entries will appear here.</p></div>';
+        return;
+    }
+
+    container.innerHTML = trash.map(e => {
+        const date = new Date(e.date);
+        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const daysLeft = e.deletedAt ? Math.max(0, 30 - Math.floor((Date.now() - new Date(e.deletedAt).getTime()) / 86400000)) : 30;
+        return '<div class="trash-entry-card">' +
+            '<span class="trash-entry-mood">' + (e.mood || '📝') + '</span>' +
+            '<div class="trash-entry-info"><div class="trash-entry-title">' + escapeHtml(e.title) + '</div><div class="trash-entry-date">' + dateStr + ' · ' + (e.wordCount || 0) + ' words · expires in ' + daysLeft + ' days</div></div>' +
+            '<div class="trash-entry-actions">' +
+                '<button class="btn btn-secondary" onclick="restoreEntry(\'' + e.id + '\')"><i class="fa-solid fa-rotate-left"></i> Restore</button>' +
+                '<button class="btn btn-danger" onclick="permanentDelete(\'' + e.id + '\')"><i class="fa-solid fa-xmark"></i></button>' +
+            '</div></div>';
+    }).join('');
+}
+
+window.restoreEntry = function(id) {
+    const idx = trash.findIndex(e => e.id === id);
+    if (idx !== -1) {
+        const entry = trash.splice(idx, 1)[0];
+        delete entry.deletedAt;
+        entries.unshift(entry);
+        saveEntries();
+        saveTrash();
+        updateTrashBadge();
+        renderTrash();
+        showToast('Entry restored', 'success');
+    }
+};
+
+window.permanentDelete = function(id) {
+    showModal('Permanently Delete?', 'This cannot be undone.', () => {
+        trash = trash.filter(e => e.id !== id);
+        saveTrash();
+        updateTrashBadge();
+        renderTrash();
+        showToast('Permanently deleted', 'success');
+    });
+};
+
+window.emptyTrash = function() {
+    if (trash.length === 0) { showToast('Trash is already empty', 'error'); return; }
+    showModal('Empty Trash?', 'All ' + trash.length + ' entries will be permanently deleted.', () => {
+        trash = [];
+        saveTrash();
+        updateTrashBadge();
+        renderTrash();
+        showToast('Trash emptied', 'success');
+    });
+};
+
+function updateTrashBadge() {
+    const badge = document.getElementById('trashBadge');
+    if (trash.length > 0) {
+        badge.style.display = 'inline';
+        badge.textContent = trash.length;
+    } else {
+        badge.style.display = 'none';
+    }
+}
+

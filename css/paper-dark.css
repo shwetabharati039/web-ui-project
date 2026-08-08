@@ -1,0 +1,40 @@
+/* Dark mode adjustments for paper styles */
+[data-theme="dark"] .form-textarea.paper-lined,
+[data-theme="dark"] .detail-content.paper-lined,
+[data-theme="dark"] .editor-content.paper-lined {
+    background-color: #2a2a3e;
+    background-image:
+        linear-gradient(transparent 95%, rgba(100, 149, 237, 0.15) 95%);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-textarea.paper-graph,
+[data-theme="dark"] .detail-content.paper-graph,
+[data-theme="dark"] .editor-content.paper-graph {
+    background-color: #2a2a3e;
+}
+
+[data-theme="dark"] .form-textarea.paper-dotted,
+[data-theme="dark"] .detail-content.paper-dotted,
+[data-theme="dark"] .editor-content.paper-dotted {
+    background-color: #2a2a3e;
+}
+
+[data-theme="dark"] .form-textarea.paper-blank,
+[data-theme="dark"] .detail-content.paper-blank,
+[data-theme="dark"] .editor-content.paper-blank {
+    background: #252545;
+}
+
+[data-theme="dark"] .form-textarea.paper-vintage,
+[data-theme="dark"] .detail-content.paper-vintage,
+[data-theme="dark"] .editor-content.paper-vintage {
+    background-color: #2a2530;
+    color: #d4c5a9;
+}
+
+[data-theme="dark"] .form-textarea.paper-sticky,
+[data-theme="dark"] .detail-content.paper-sticky,
+[data-theme="dark"] .editor-content.paper-sticky {
+    background-color: #3a3520;
+}

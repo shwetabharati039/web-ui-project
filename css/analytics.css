@@ -1,0 +1,196 @@
+/* ═══════════════════════════════════════════════════
+   ANALYTICS PAGE
+   ═══════════════════════════════════════════════════ */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    opacity: 0.7;
+}
+
+.stat-card-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+}
+
+.stat-card-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.analytics-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.analytics-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.analytics-section-title i {
+    color: var(--accent);
+}
+
+/* Mood bars */
+.mood-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.mood-bar-emoji {
+    font-size: 22px;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.mood-bar-track {
+    flex: 1;
+    height: 28px;
+    background: var(--bg-secondary);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+}
+
+.mood-bar-fill {
+    height: 100%;
+    border-radius: 14px;
+    background: var(--accent);
+    transition: width 0.6s ease;
+    min-width: 2px;
+}
+
+.mood-bar-count {
+    font-size: 13px;
+    color: var(--text-muted);
+    width: 40px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* Mood trend chart */
+#moodTrendChart {
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-sm);
+}
+
+/* Activity heatmap */
+.activity-heatmap {
+    display: grid;
+    grid-template-columns: repeat(30, 1fr);
+    gap: 3px;
+}
+
+.heatmap-cell {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background: var(--bg-secondary);
+    transition: background 0.2s;
+}
+
+.heatmap-cell.level-1 { background: rgba(37,99,235,0.2); }
+.heatmap-cell.level-2 { background: rgba(37,99,235,0.4); }
+.heatmap-cell.level-3 { background: rgba(37,99,235,0.6); }
+.heatmap-cell.level-4 { background: var(--accent); }
+
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+    justify-content: flex-end;
+}
+
+.heatmap-legend-cell {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+/* Mood timeline */
+.mood-timeline {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    height: 60px;
+    flex-wrap: wrap;
+}
+
+.mood-timeline-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 40px;
+}
+
+.mood-timeline-emoji {
+    font-size: 16px;
+}
+
+.mood-timeline-date {
+    font-size: 9px;
+    color: var(--text-muted);
+}
+
+/* Tag cloud */
+.tag-cloud {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tag-cloud-item {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--accent-light);
+    color: var(--accent);
+    transition: transform 0.2s;
+}
+
+.tag-cloud-item:hover {
+    transform: scale(1.05);
+}

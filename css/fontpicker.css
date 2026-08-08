@@ -1,0 +1,50 @@
+/* ═══════════════════════════════════════════════════
+   FONT PICKER
+   ═══════════════════════════════════════════════════ */
+.font-picker-panel {
+    padding: 8px 12px 4px;
+    display: none;
+}
+
+.font-picker-panel.show {
+    display: block;
+}
+
+.font-picker-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.font-picker-option span {
+    font-size: 18px;
+    min-width: 28px;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.font-picker-option:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.font-picker-option.active {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.font-picker-option.active span {
+    color: var(--accent);
+}

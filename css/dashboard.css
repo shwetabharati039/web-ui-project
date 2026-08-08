@@ -1,0 +1,119 @@
+/* ═══════════════════════════════════════════════════
+   WRITING PROMPTS
+   ═══════════════════════════════════════════════════ */
+.prompt-banner {
+    background: linear-gradient(135deg, var(--accent-light), rgba(37,99,235,0.05));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+}
+
+.prompt-banner::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    font-size: 80px;
+    font-family: 'Playfair Display', serif;
+    color: var(--accent);
+    opacity: 0.12;
+    line-height: 1;
+}
+
+.prompt-category-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.prompt-chip {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+}
+
+.prompt-chip:hover,
+.prompt-chip.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.prompt-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.prompt-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.prompt-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Writing tip */
+.welcome-banner {
+    background: linear-gradient(135deg, var(--accent-light), rgba(37,99,235,0.03));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px 28px;
+    margin-bottom: 28px;
+}
+
+.welcome-greeting {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.welcome-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.writing-tip {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.writing-tip i {
+    font-size: 20px;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.writing-tip strong {
+    color: var(--text-primary);
+}

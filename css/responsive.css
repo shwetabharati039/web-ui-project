@@ -1,0 +1,176 @@
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay.show {
+        display: block;
+    }
+
+    .mobile-header {
+        display: flex;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 72px 16px 24px;
+    }
+
+    .main-content::before {
+        left: 0;
+    }
+
+    .entries-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .search-bar {
+        flex-direction: column;
+    }
+
+    .search-input-wrap,
+    .filter-group,
+    .filter-select,
+    .filter-input {
+        width: 100%;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .detail-title {
+        font-size: 24px;
+    }
+
+    .detail-actions {
+        flex-wrap: wrap;
+    }
+
+    .prompt-actions {
+        flex-wrap: wrap;
+    }
+
+    .mood-selector {
+        gap: 6px;
+    }
+
+    .mood-option {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .calendar-nav {
+        gap: 12px;
+    }
+
+    .calendar-month-label {
+        min-width: 150px;
+        font-size: 18px;
+    }
+
+    .calendar-day {
+        min-height: 52px;
+    }
+
+    .calendar-day-mood {
+        font-size: 12px;
+    }
+
+    .analytics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .activity-heatmap {
+        grid-template-columns: repeat(15, 1fr);
+    }
+
+    .prompt-text {
+        font-size: 15px;
+    }
+
+    .detail-images img {
+        max-width: 100%;
+    }
+
+    .stat-card-value {
+        font-size: 24px;
+    }
+
+    .sort-row {
+        flex-wrap: wrap;
+    }
+}
+
+
+@media (max-width: 480px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-grid {
+        gap: 2px;
+    }
+
+    .calendar-day-num {
+        font-size: 12px;
+    }
+
+    .wallpaper-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .wallpaper-upload-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .modal-box {
+        padding: 24px 20px;
+    }
+
+    .toast-container {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+    }
+
+    .task-filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .task-tabs {
+        justify-content: space-between;
+    }
+
+    .task-tab {
+        flex: 1;
+        text-align: center;
+    }
+
+    .game-overlay-card {
+        padding: 20px 16px;
+        max-width: none;
+    }
+
+    .game-hud-hint {
+        font-size: 11px;
+    }
+
+    .entry-card {
+        padding: 18px;
+    }
+}
