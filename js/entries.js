@@ -14,6 +14,7 @@ window.saveEntry = function() {
         mood: selectedMood || '📝',
         tags: [...currentTags],
         images: [...currentImages],
+        recordings: [...currentRecordings],
         pinned: editingEntryId ? (entries.find(e => e.id === editingEntryId)?.pinned || false) : false,
         bookmarked: editingEntryId ? (entries.find(e => e.id === editingEntryId)?.bookmarked || false) : false,
         wordCount: stripHtml(content).trim() ? stripHtml(content).trim().split(/\s+/).length : 0,
@@ -46,6 +47,8 @@ window.editEntry = function(id) {
     selectedMood = entry.mood;
     currentTags = [...(entry.tags || [])];
     currentImages = [...(entry.images || [])];
+    currentRecordings = [...(entry.recordings || [])];
+    renderRecordingList();
     document.querySelectorAll('.mood-option').forEach(m => {
         m.classList.toggle('selected', m.dataset.mood === selectedMood);
     });
@@ -173,6 +176,7 @@ function renderEntryCard(entry) {
         '<div class="entry-card-images">' + entry.images.map(src => '<img src="' + src + '" alt="entry image">').join('') + '</div>' : '';
     const readMin = Math.max(1, Math.ceil((entry.wordCount || 0) / 200));
     const lockIcon = entry.locked ? ' <i class="fa-solid fa-lock" style="font-size:11px;color:var(--text-muted);"></i>' : '';
+    const voiceIcon = (entry.recordings || []).length > 0 ? ' <i class="fa-solid fa-microphone voice-card-icon" title="' + entry.recordings.length + ' voice note' + (entry.recordings.length !== 1 ? 's' : '') + '"></i>' : '';
 
     return '<div class="entry-card" onclick="navigateTo(\'detail\', \'' + entry.id + '\')">' +
         '<div class="entry-card-header">' +
@@ -184,7 +188,7 @@ function renderEntryCard(entry) {
             '</div>' +
         '</div>' +
         images +
-        '<div class="entry-card-title">' + escapeHtml(entry.title) + lockIcon + '</div>' +
+        '<div class="entry-card-title">' + escapeHtml(entry.title) + lockIcon + voiceIcon + '</div>' +
         '<div class="entry-card-preview">' + escapeHtml(stripHtml(entry.content)) + '</div>' +
         '<div class="entry-card-footer">' +
             '<div class="entry-card-tags">' + tags + '</div>' +
@@ -223,6 +227,17 @@ function renderDetail(id) {
     const readMin = Math.max(1, Math.ceil((entry.wordCount || 0) / 200));
     const images = (entry.images || []).length > 0 ?
         '<div class="detail-images">' + entry.images.map(src => '<img src="' + src + '" alt="entry image" onclick="openLightbox(\'' + src.substring(0, 50) + '\')">').join('') + '</div>' : '';
+    const recordings = (entry.recordings || []).length > 0 ?
+        '<div class="detail-recordings">' +
+            '<div class="detail-section-label"><i class="fa-solid fa-microphone"></i> Voice Notes</div>' +
+            entry.recordings.map((r, i) =>
+                '<div class="detail-recording-item">' +
+                    '<button class="voice-play-btn" onclick="playSavedRecording(this, \'' + entry.id + '\', ' + i + ')" title="Play"><i class="fa-solid fa-play"></i></button>' +
+                    '<span class="detail-recording-name">Voice Note ' + (i + 1) + '</span>' +
+                    '<span class="detail-recording-duration">' + formatTime(Math.round(r.duration || 0)) + '</span>' +
+                '</div>'
+            ).join('') +
+        '</div>' : '';
 
         const fontMap = {
             'default': "'Inter', sans-serif",
@@ -241,6 +256,7 @@ function renderDetail(id) {
             '<span class="detail-meta-item"><i class="fa-solid fa-stopwatch"></i> ~' + readMin + ' min read</span>' +
         '</div>' +
         images +
+        recordings +
         '<div class="detail-content detail-paper-wrap paper-' + currentPaperTheme + '" style="margin-top:28px;' + detailFontStyle + '">' + sanitizeHtml(entry.content) + '</div>' +
         (tags ? '<div class="detail-tags">' + tags + '</div>' : '') +
         '<div class="detail-actions">' +

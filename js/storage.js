@@ -6,7 +6,10 @@ function loadEntries() {
     catch { return []; }
 }
 
-function saveEntries() { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+function saveEntries() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+    catch (e) { showToast('Storage full — entry could not be saved', 'error'); }
+}
 
 function loadSort() {
     const saved = localStorage.getItem(SORT_KEY);
@@ -48,19 +51,28 @@ function loadDraft() {
                 currentImages = [...draft.images];
                 renderImagePreviews();
             }
+            if (draft.recordings && draft.recordings.length) {
+                currentRecordings = [...draft.recordings];
+                renderRecordingList();
+            }
             if (draft.date) document.getElementById('entryDate').value = draft.date;
         }
     } catch {}
 }
 
 function saveDraft() {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({
-        title: document.getElementById('entryTitle').value,
-        content: getEditorContent(),
-        mood: selectedMood, tags: currentTags,
-        images: currentImages,
-        date: document.getElementById('entryDate').value
-    }));
+    try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+            title: document.getElementById('entryTitle').value,
+            content: getEditorContent(),
+            mood: selectedMood, tags: currentTags,
+            images: currentImages,
+            recordings: currentRecordings,
+            date: document.getElementById('entryDate').value
+        }));
+    } catch (e) {
+        showToast('Draft too large to save — storage is full', 'error');
+    }
 }
 
 function clearDraft() {
@@ -71,10 +83,12 @@ function clearDraft() {
     selectedMood = '';
     currentTags = [];
     currentImages = [];
+    currentRecordings = [];
     editingEntryId = null;
     document.querySelectorAll('.mood-option').forEach(m => m.classList.remove('selected'));
     renderTags();
     renderImagePreviews();
+    renderRecordingList();
     setDefaultDate();
     updateWordCount();
     showToast('Draft cleared', 'success');

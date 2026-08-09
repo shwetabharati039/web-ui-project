@@ -2,6 +2,7 @@
 // NAVIGATION
 // ═══════════════════════════════════════
 window.navigateTo = function(page, param) {
+    if (recordingActive && typeof stopRecording === 'function') stopRecording();
     if (page !== 'game') leaveGamePage();
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -78,10 +79,13 @@ function resetForm() {
     selectedMood = '';
     currentTags = [];
     currentImages = [];
+    currentRecordings = [];
     editingEntryId = null;
     document.querySelectorAll('.mood-option').forEach(m => m.classList.remove('selected'));
     renderTags();
     renderImagePreviews();
+    renderRecordingList();
+    if (typeof stopPreviewAudio === 'function') stopPreviewAudio();
     setDefaultDate();
     updateWordCount();
     setTimeout(applyPaperTheme, 10);

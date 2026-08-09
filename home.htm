@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/calendar.css">
     <link rel="stylesheet" href="css/images.css">
+    <link rel="stylesheet" href="css/voice.css">
     <link rel="stylesheet" href="css/analytics.css">
     <link rel="stylesheet" href="css/trash.css">
     <link rel="stylesheet" href="css/settings.css">
@@ -405,6 +406,24 @@
                         <div class="image-preview-grid" id="imagePreviewGrid"></div>
                     </div>
 
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-microphone"></i> Voice Recording</label>
+                        <div class="voice-recorder" id="voiceRecorder">
+                            <div class="voice-recorder-status" id="voiceStatus">
+                                <div class="voice-status-dot" id="voiceStatusDot"></div>
+                                <span id="voiceStatusText">Click record to capture your thoughts</span>
+                            </div>
+                            <div class="voice-recorder-timer" id="voiceTimer" style="display:none;">0:00</div>
+                            <div class="voice-recorder-actions">
+                                <button class="voice-record-btn" id="voiceRecordBtn" onclick="toggleRecording()">
+                                    <i class="fa-solid fa-microphone"></i> Record
+                                </button>
+                                <span class="voice-recorder-hint">Max 3 clips · 2 min each</span>
+                            </div>
+                        </div>
+                        <div class="voice-recording-list" id="voiceRecordingList"></div>
+                    </div>
+
                     <div style="display:flex; gap:12px; margin-top:8px;">
                         <button class="btn btn-primary" onclick="saveEntry()">
                             <i class="fa-solid fa-check"></i> Save Entry
@@ -648,6 +667,7 @@
     <script src="js/prompts-ui.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/images.js"></script>
+    <script src="js/voice.js"></script>
     <script src="js/entries.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/analytics.js"></script>

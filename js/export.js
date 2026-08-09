@@ -13,7 +13,7 @@ window.exportEntries = function(format) {
         }).join('\n');
         filename = 'diary-export.txt'; type = 'text/plain';
     } else {
-        content = JSON.stringify(entries.map(e => ({...e, images: (e.images || []).length + ' images attached'})), null, 2);
+        content = JSON.stringify(entries.map(e => ({...e, images: (e.images || []).length + ' images attached', recordings: (e.recordings || []).length + ' audio notes'})), null, 2);
         filename = 'diary-export.json'; type = 'application/json';
     }
     const blob = new Blob([content], { type });

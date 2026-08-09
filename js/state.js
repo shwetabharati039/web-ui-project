@@ -18,6 +18,7 @@ let trash = loadTrash();
 let tasks = loadTasks();
 let currentTags = [];
 let currentImages = [];
+let currentRecordings = [];
 let currentPaperTheme = 'lined';
 let autoSaveTimer = null;
 let modalConfirmFn = null;
@@ -25,6 +26,11 @@ let editingEntryId = null;
 let selectedMood = '';
 let calendarYear, calendarMonth;
 let currentPromptCategory = 'all';
+let mediaRecorder = null;
+let mediaChunks = [];
+let recordingStartTime = 0;
+let recordingTimer = null;
+let recordingActive = false;
 
 const moodOrder = {
     '🥰': 0, '😊': 1, '😎': 2, '🎉': 3,
