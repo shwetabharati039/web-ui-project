@@ -677,7 +677,7 @@
 
 .export-menu {
     position: absolute;
-    bottom: 100%;
+    top: 100%;
     left: 0;
     background: var(--bg-card);
     border: 1px solid var(--border);

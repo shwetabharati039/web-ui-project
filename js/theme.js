@@ -266,7 +266,9 @@ window.setWritingFont = function(font) {
 };
 
 window.toggleFontPicker = function() {
-    document.getElementById('fontPickerPanel').classList.toggle('show');
+    const panel = document.getElementById('fontPickerPanel');
+    const isOpen = panel.classList.toggle('show');
+    if (isOpen) panel.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 };
 
 // ═══════════════════════════════════════
@@ -312,7 +314,9 @@ function startReminderCheck() {
 }
 
 window.toggleReminderPanel = function() {
-    document.getElementById('reminderPanel').classList.toggle('show');
+    const panel = document.getElementById('reminderPanel');
+    const isOpen = panel.classList.toggle('show');
+    if (isOpen) panel.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 };
 
 window.toggleReminder = function() {

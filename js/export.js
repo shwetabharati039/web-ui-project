@@ -1,7 +1,11 @@
 // ═══════════════════════════════════════
 // EXPORT
 // ═══════════════════════════════════════
-window.toggleExportMenu = function() { document.getElementById('exportMenu').classList.toggle('show'); };
+window.toggleExportMenu = function() {
+    const menu = document.getElementById('exportMenu');
+    const isOpen = menu.classList.toggle('show');
+    if (isOpen) menu.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+};
 
 window.exportEntries = function(format) {
     if (entries.length === 0) { showToast('No entries to export', 'error'); return; }
