@@ -1,11 +1,14 @@
 // ═══════════════════════════════════════
 // CALENDAR VIEW
 // ═══════════════════════════════════════
-function renderCalendar() {
+import { entries, calendarYear, calendarMonth, setCalendar } from './state.js';
+import { navigateTo } from './navigation.js';
+import { escapeHtml } from './ui.js';
+
+export function renderCalendar() {
     if (!calendarYear) {
         const now = new Date();
-        calendarYear = now.getFullYear();
-        calendarMonth = now.getMonth();
+        setCalendar(now.getFullYear(), now.getMonth());
     }
     const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     document.getElementById('calendarMonthLabel').textContent = months[calendarMonth] + ' ' + calendarYear;
@@ -61,9 +64,11 @@ function renderCalendar() {
 }
 
 window.changeMonth = function(dir) {
-    calendarMonth += dir;
-    if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
-    if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+    let m = calendarMonth + dir;
+    let y = calendarYear;
+    if (m > 11) { m = 0; y++; }
+    if (m < 0) { m = 11; y--; }
+    setCalendar(y, m);
     renderCalendar();
 };
 
@@ -90,4 +95,3 @@ window.showCalendarDay = function(dateKey) {
 
     panel.classList.add('show');
 };
-

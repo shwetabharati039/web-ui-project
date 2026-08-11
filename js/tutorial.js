@@ -2,7 +2,7 @@
 // TUTORIAL / ONBOARDING
 // ═══════════════════════════════════════
 const TUTORIAL_KEY = 'diary_tutorial_done';
-let tutorialStep = -1;
+export let tutorialStep = -1;
 
 const tutorialSteps = [
     {
@@ -103,7 +103,7 @@ window.nextTutorialStep = function() {
     renderTutorialStep();
 };
 
-function renderTutorialStep() {
+export function renderTutorialStep() {
     const step = tutorialSteps[tutorialStep];
     if (!step) { endTutorial(); return; }
 
@@ -167,7 +167,7 @@ function renderTutorialStep() {
     }
 };
 
-function endTutorial() {
+export function endTutorial() {
     localStorage.setItem(TUTORIAL_KEY, 'done');
     document.getElementById('tutorialOverlay').classList.remove('active');
     document.getElementById('tutorialWelcome').classList.remove('visible');
@@ -177,7 +177,7 @@ function endTutorial() {
     tutorialStep = -1;
 }
 
-function checkTutorial() {
+export function checkTutorial() {
     if (!localStorage.getItem(TUTORIAL_KEY)) {
         setTimeout(showTutorialWelcome, 800);
     }

@@ -1,6 +1,12 @@
 // ═══════════════════════════════════════
 // EXPORT
 // ═══════════════════════════════════════
+import { entries, trash, tasks, setEntries, setTrash, setTasks } from './state.js';
+import { saveEntries, saveTrash, saveTasks } from './storage.js';
+import { stripHtml } from './editor.js';
+import { showModal, showToast } from './ui.js';
+import { tutorialStep, renderTutorialStep } from './tutorial.js';
+
 window.toggleExportMenu = function() {
     const menu = document.getElementById('exportMenu');
     const isOpen = menu.classList.toggle('show');
@@ -72,9 +78,9 @@ window.importBackup = function(event) {
                 'Import Backup?',
                 'This will replace all ' + entries.length + ' current entries, ' + trash.length + ' trash items, and ' + tasks.length + ' tasks with ' + entryCount + ' entries, ' + trashCount + ' trash items, and ' + taskCount + ' tasks from the backup. This cannot be undone.',
                 function() {
-                    entries = data.entries;
-                    trash = data.trash || [];
-                    tasks = data.tasks || [];
+                    setEntries(data.entries);
+                    setTrash(data.trash || []);
+                    setTasks(data.tasks || []);
                     saveEntries();
                     saveTrash();
                     saveTasks();
@@ -102,4 +108,3 @@ document.addEventListener('click', function(e) {
         document.getElementById('reminderPanel').classList.remove('show');
     }
 });
-

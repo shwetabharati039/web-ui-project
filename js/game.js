@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════
 // Game-wide state and settings.
 const MC_SOUND_KEY = 'diary_game_sound';   // localStorage key for the sound toggle
-let gameInstance = null;                    // the active game object (null when idle)
+export let gameInstance = null;             // the active game object (null when idle)
 let gameRafId = null;                       // requestAnimationFrame id for the render loop
 let gameAudio = null;                       // shared Web Audio API AudioContext
 let mcSoundOn = false;                      // whether sound effects are enabled
@@ -462,7 +462,7 @@ function renderWorld(g) {
 function getGameCanvas() { return document.getElementById('gameCanvas'); }
 
 // Reads the persisted sound preference from localStorage.
-function gameAudioEnabled() {
+export function gameAudioEnabled() {
     try { mcSoundOn = localStorage.getItem(MC_SOUND_KEY) === '1'; } catch (e) { mcSoundOn = false; }
 }
 
@@ -849,7 +849,7 @@ function requestPointerLock() {
 
 // Starts a fresh play session: creates the game, drops the player on the
 // highest solid block at world center, and begins the render loop.
-window.startGame = function() {
+export function startGame() {
     const g = createGame(false);
     if (!g) return;
     gameInstance = g;
@@ -870,34 +870,38 @@ window.startGame = function() {
     if (gameRafId) cancelAnimationFrame(gameRafId);
     g.lastTime = 0;
     gameRafId = requestAnimationFrame(loop);
-};
+}
+window.startGame = startGame;
 
 // Pauses an active game, releases the pointer lock, and shows the pause overlay.
-window.pauseGame = function() {
+export function pauseGame() {
     const g = gameInstance;
     if (!g || g.state !== 'playing') return;
     g.state = 'paused';
     g.breakHeld = false;
     if (document.pointerLockElement) document.exitPointerLock();
     setGameOverlay('paused');
-};
+}
+window.pauseGame = pauseGame;
 
 // Resumes a paused game and re-locks the pointer.
-window.resumeGame = function() {
+export function resumeGame() {
     const g = gameInstance;
     if (!g || g.state !== 'paused') return;
     g.state = 'playing';
     setGameOverlay('hidden');
     requestPointerLock();
-};
+}
+window.resumeGame = resumeGame;
 
 // Toggles between playing and paused (triggered by the P key / Esc).
-window.togglePause = function() {
+export function togglePause() {
     const g = gameInstance;
     if (!g) return;
     if (g.state === 'playing') pauseGame();
     else if (g.state === 'paused') resumeGame();
-};
+}
+window.togglePause = togglePause;
 
 // Overlay button action: resumes if paused, otherwise starts a new game.
 window.gameOverlayAction = function() {
@@ -908,7 +912,7 @@ window.gameOverlayAction = function() {
 
 // Tears down the game when the user navigates away from the game page:
 // pauses, stops the loop, releases pointer lock, and cancels the RAF.
-function leaveGamePage() {
+export function leaveGamePage() {
     const g = gameInstance;
     if (!g) return;
     if (g.state === 'playing') g.state = 'paused';
@@ -921,7 +925,7 @@ function leaveGamePage() {
 
 // Prepares the game page when navigated to: sizes the canvas, builds the world
 // on first visit, resumes a paused session, or shows the scenic menu backdrop.
-function openGamePage() {
+export function openGamePage() {
     gameAudioEnabled();
     const canvas = getGameCanvas();
     if (!canvas) return;
@@ -966,7 +970,7 @@ document.addEventListener('pointerlockchange', function() {
 
 // Wires up all mouse / wheel / touch handlers for camera look, breaking,
 // placing, and hotbar scrolling on the game canvas.
-function setupGameCanvasEvents() {
+export function setupGameCanvasEvents() {
     const canvas = getGameCanvas();
     if (!canvas) return;
 

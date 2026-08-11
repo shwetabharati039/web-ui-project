@@ -1,9 +1,16 @@
 // ═══════════════════════════════════════
 // THEME
 // ═══════════════════════════════════════
+import {
+    THEME_KEY, SCHEDULE_KEY, WALLPAPER_KEY, PAPER_THEME_KEY, FONT_KEY, REMINDER_KEY,
+    currentPaperTheme, setCurrentPaperTheme
+} from './state.js';
+import { showToast } from './ui.js';
+import { navigateTo } from './navigation.js';
+
 let autoScheduleInterval = null;
 
-function loadTheme() {
+export function loadTheme() {
     const schedule = loadSchedule();
     if (schedule.enabled) {
         applyAutoTheme();
@@ -20,7 +27,7 @@ function loadTheme() {
     renderAutoScheduleUI();
 }
 
-window.toggleTheme = function() {
+export function toggleTheme() {
     const schedule = loadSchedule();
     if (schedule.enabled) {
         schedule.enabled = false;
@@ -32,7 +39,8 @@ window.toggleTheme = function() {
     document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
     document.getElementById('themeLabel').textContent = isDark ? 'Dark Mode' : 'Light Mode';
     renderAutoScheduleUI();
-};
+}
+window.toggleTheme = toggleTheme;
 
 // ═══════════════════════════════════════
 // AUTO THEME SCHEDULE
@@ -142,7 +150,7 @@ const wallpaperPresets = [
     { id: 'waves', label: 'Waves', value: 'radial-gradient(ellipse at 10% 90%, rgba(37,99,235,0.08) 0%, transparent 50%), radial-gradient(ellipse at 90% 10%, rgba(102,126,234,0.08) 0%, transparent 50%)' }
 ];
 
-function loadWallpaper() {
+export function loadWallpaper() {
     try { const saved = localStorage.getItem(WALLPAPER_KEY); if (saved) applyWallpaper(JSON.parse(saved)); } catch {}
 }
 
@@ -154,7 +162,8 @@ function applyWallpaper(data) {
 }
 
 window.openWallpaperModal = function() { renderWallpaperGrid(); document.getElementById('wallpaperModal').classList.add('show'); };
-window.closeWallpaperModal = function() { document.getElementById('wallpaperModal').classList.remove('show'); };
+export function closeWallpaperModal() { document.getElementById('wallpaperModal').classList.remove('show'); }
+window.closeWallpaperModal = closeWallpaperModal;
 
 function renderWallpaperGrid() {
     const grid = document.getElementById('wallpaperGrid');
@@ -197,13 +206,13 @@ window.clearWallpaper = function() { localStorage.removeItem(WALLPAPER_KEY); app
 // ═══════════════════════════════════════
 // PAPER THEME
 // ═══════════════════════════════════════
-function loadPaperTheme() {
+export function loadPaperTheme() {
     const saved = localStorage.getItem(PAPER_THEME_KEY);
-    if (saved) currentPaperTheme = saved;
+    if (saved) setCurrentPaperTheme(saved);
     applyPaperTheme();
 }
 
-function applyPaperTheme() {
+export function applyPaperTheme() {
     const editor = document.getElementById('entryContent');
     const paperOptions = document.querySelectorAll('.paper-theme-option');
     if (editor) {
@@ -217,7 +226,7 @@ function applyPaperTheme() {
 }
 
 window.setPaperTheme = function(theme) {
-    currentPaperTheme = theme;
+    setCurrentPaperTheme(theme);
     localStorage.setItem(PAPER_THEME_KEY, theme);
     applyPaperTheme();
     showToast('Paper style: ' + theme.charAt(0).toUpperCase() + theme.slice(1), 'success');
@@ -230,16 +239,16 @@ window.togglePaperThemeDropdown = function() {
 // ═══════════════════════════════════════
 // WRITING FONT PICKER
 // ═══════════════════════════════════════
-let currentFont = 'default';
+export let currentFont = 'default';
 let reminderInterval = null;
 
-function loadFont() {
+export function loadFont() {
     const saved = localStorage.getItem(FONT_KEY);
     if (saved) currentFont = saved;
     applyFont();
 }
 
-function applyFont() {
+export function applyFont() {
     const editor = document.getElementById('entryContent');
     const fontMap = {
         'default': "'Inter', sans-serif",
@@ -274,7 +283,7 @@ window.toggleFontPicker = function() {
 // ═══════════════════════════════════════
 // DAILY REMINDERS
 // ═══════════════════════════════════════
-function loadReminder() {
+export function loadReminder() {
     try {
         const r = JSON.parse(localStorage.getItem(REMINDER_KEY));
         return r || { enabled: false, time: '20:00', message: 'Time to write!' };
@@ -308,7 +317,7 @@ function checkReminder() {
     }
 }
 
-function startReminderCheck() {
+export function startReminderCheck() {
     if (reminderInterval) clearInterval(reminderInterval);
     reminderInterval = setInterval(checkReminder, 30000);
 }
@@ -360,7 +369,7 @@ window.updateReminderMessage = function() {
     saveReminder(reminder);
 };
 
-function renderReminderUI() {
+export function renderReminderUI() {
     const reminder = loadReminder();
     const sw = document.getElementById('reminderSwitch');
     const timeInput = document.getElementById('reminderTime');
@@ -378,4 +387,3 @@ function renderReminderUI() {
         statusEl.innerHTML = '<div class="reminder-dot inactive"></div><span>Off — click to enable</span>';
     }
 }
-

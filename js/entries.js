@@ -1,6 +1,21 @@
 // ═══════════════════════════════════════
 // SAVE / EDIT / DELETE (with images & trash)
 // ═══════════════════════════════════════
+import {
+    entries, trash, selectedMood, currentTags, currentImages, currentRecordings,
+    editingEntryId, currentPaperTheme, DRAFT_KEY,
+    setEditingEntryId, setSelectedMood, setCurrentTags, setCurrentImages, setCurrentRecordings
+} from './state.js';
+import { getEditorContent, setEditorContent, sanitizeHtml, stripHtml } from './editor.js';
+import { saveEntries, saveTrash } from './storage.js';
+import { navigateTo, updateWordCount, renderTags } from './navigation.js';
+import { renderImagePreviews, openLightbox } from './images.js';
+import { renderRecordingList, formatTime, playSavedRecording } from './voice.js';
+import { showToast, showModal, escapeHtml } from './ui.js';
+import { getFilteredEntries, updateTagFilter } from './search.js';
+import { currentFont } from './theme.js';
+import { updateTrashBadge } from './trash.js';
+
 window.saveEntry = function() {
     const title = document.getElementById('entryTitle').value.trim();
     const content = sanitizeHtml(getEditorContent()).trim();
@@ -33,21 +48,21 @@ window.saveEntry = function() {
 
     saveEntries();
     localStorage.removeItem(DRAFT_KEY);
-    editingEntryId = null;
+    setEditingEntryId(null);
     navigateTo('dashboard');
 };
 
 window.editEntry = function(id) {
     const entry = entries.find(e => e.id === id);
     if (!entry) return;
-    editingEntryId = id;
+    setEditingEntryId(id);
     document.getElementById('entryTitle').value = entry.title === 'Untitled' ? '' : entry.title;
     setEditorContent(entry.content);
     document.getElementById('entryDate').value = entry.date.slice(0, 16);
-    selectedMood = entry.mood;
-    currentTags = [...(entry.tags || [])];
-    currentImages = [...(entry.images || [])];
-    currentRecordings = [...(entry.recordings || [])];
+    setSelectedMood(entry.mood);
+    setCurrentTags([...(entry.tags || [])]);
+    setCurrentImages([...(entry.images || [])]);
+    setCurrentRecordings([...(entry.recordings || [])]);
     renderRecordingList();
     document.querySelectorAll('.mood-option').forEach(m => {
         m.classList.toggle('selected', m.dataset.mood === selectedMood);
@@ -110,7 +125,7 @@ window.toggleBookmark = function(id, e) {
     }
 };
 
-function updateBookmarkBadge() {
+export function updateBookmarkBadge() {
     const badge = document.getElementById('bookmarkBadge');
     const count = entries.filter(e => e.bookmarked).length;
     if (count > 0) {
@@ -131,7 +146,7 @@ function getGreeting() {
     return 'Good evening';
 }
 
-function renderDashboard() {
+export function renderDashboard() {
     const filtered = getFilteredEntries();
     const container = document.getElementById('entriesContainer');
     document.getElementById('entryCount').textContent = entries.length + ' entr' + (entries.length !== 1 ? 'ies' : 'y');
@@ -168,7 +183,7 @@ function renderDashboard() {
     container.innerHTML = html;
 }
 
-function renderEntryCard(entry) {
+export function renderEntryCard(entry) {
     const date = new Date(entry.date);
     const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
     const tags = (entry.tags || []).map(t => '<span class="tag">#' + t + '</span>').join('');
@@ -199,7 +214,7 @@ function renderEntryCard(entry) {
 // ═══════════════════════════════════════
 // RENDER BOOKMARKS
 // ═══════════════════════════════════════
-function renderBookmarks() {
+export function renderBookmarks() {
     const bookmarked = entries.filter(e => e.bookmarked);
     const container = document.getElementById('bookmarksContainer');
     document.getElementById('bookmarksSubtitle').textContent = bookmarked.length + ' saved entr' + (bookmarked.length !== 1 ? 'ies' : 'y') + ' for quick access';
@@ -216,7 +231,7 @@ function renderBookmarks() {
 // ═══════════════════════════════════════
 // RENDER DETAIL (with images)
 // ═══════════════════════════════════════
-function renderDetail(id) {
+export function renderDetail(id) {
     const entry = entries.find(e => e.id === id);
     if (!entry) { navigateTo('dashboard'); return; }
 
@@ -272,4 +287,3 @@ function renderDetail(id) {
         });
     }, 50);
 }
-

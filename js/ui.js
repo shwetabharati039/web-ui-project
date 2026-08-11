@@ -1,6 +1,13 @@
 // ═══════════════════════════════════════
 // SIDEBAR
 // ═══════════════════════════════════════
+import { navigateTo } from './navigation.js';
+import { toggleTheme, closeWallpaperModal } from './theme.js';
+import { endTutorial, tutorialStep } from './tutorial.js';
+import { closeLightbox } from './images.js';
+import { pauseGame, gameInstance } from './game.js';
+import { setModalConfirmFn, modalConfirmFn } from './state.js';
+
 window.toggleSidebar = function() {
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('sidebarOverlay').classList.toggle('show');
@@ -9,14 +16,14 @@ window.toggleSidebar = function() {
 // ═══════════════════════════════════════
 // MODALS
 // ═══════════════════════════════════════
-function showModal(title, message, confirmFn) {
+export function showModal(title, message, confirmFn) {
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalMessage').textContent = message;
     document.getElementById('confirmModal').classList.add('show');
-    modalConfirmFn = confirmFn;
+    setModalConfirmFn(confirmFn);
 }
 
-window.closeModal = function() { document.getElementById('confirmModal').classList.remove('show'); modalConfirmFn = null; };
+window.closeModal = function() { document.getElementById('confirmModal').classList.remove('show'); setModalConfirmFn(null); };
 window.modalConfirmAction = function() { if (modalConfirmFn) modalConfirmFn(); closeModal(); };
 
 // ═══════════════════════════════════════
@@ -56,7 +63,7 @@ document.addEventListener('keydown', function(e) {
 // ═══════════════════════════════════════
 // TOAST
 // ═══════════════════════════════════════
-function showToast(message, type) {
+export function showToast(message, type) {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = 'toast ' + (type || '');
@@ -68,10 +75,9 @@ function showToast(message, type) {
 // ═══════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════
-function escapeHtml(str) {
+export function escapeHtml(str) {
     if (!str) return '';
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
 }
-

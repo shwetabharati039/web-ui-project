@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════
 // WRITING PROMPTS
 // ═══════════════════════════════════════
-const prompts = {
+export const prompts = {
     gratitude: [
         "What are three things you're grateful for today?",
         "Who made your day better recently and why?",
@@ -64,7 +64,7 @@ const prompts = {
     ]
 };
 
-const writingTips = [
+export const writingTips = [
     "Try writing without editing for the first 5 minutes — let thoughts flow freely.",
     "Use sensory details: what did you see, hear, smell, taste, and feel today?",
     "Start mid-sentence to skip past writer's block: '...and that's when I realized...'",

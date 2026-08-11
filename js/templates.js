@@ -1,7 +1,12 @@
 // ═══════════════════════════════════════
 // TEMPLATES
 // ═══════════════════════════════════════
-const templates = [
+import { selectedMood, setSelectedMood } from './state.js';
+import { resetForm, updateWordCount } from './navigation.js';
+import { autoSaveDraft } from './storage.js';
+import { showToast } from './ui.js';
+
+export const templates = [
     {
         id: 'gratitude',
         label: 'Gratitude',
@@ -88,7 +93,7 @@ const templates = [
 // ═══════════════════════════════════════
 // TEMPLATE RENDERER
 // ═══════════════════════════════════════
-function renderTemplateGrid() {
+export function renderTemplateGrid() {
     const grid = document.getElementById('templateGrid');
     if (!grid) return;
     grid.innerHTML = templates.map(t =>
@@ -112,7 +117,7 @@ window.applyTemplate = function(id) {
     editor.innerHTML = tpl.content;
 
     if (tpl.mood) {
-        selectedMood = tpl.mood;
+        setSelectedMood(tpl.mood);
         document.querySelectorAll('.mood-option').forEach(m => {
             m.classList.toggle('selected', m.dataset.mood === selectedMood);
         });

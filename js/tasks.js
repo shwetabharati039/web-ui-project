@@ -1,6 +1,10 @@
 // ═══════════════════════════════════════
 // TASKS / TO-DO LIST
 // ═══════════════════════════════════════
+import { tasks, setTasks, TASK_REMINDER_KEY } from './state.js';
+import { saveTasks } from './storage.js';
+import { showToast, showModal, escapeHtml } from './ui.js';
+
 let taskFilter = 'all';
 
 window.addTask = function() {
@@ -66,7 +70,7 @@ window.toggleTask = function(id) {
 };
 
 window.deleteTask = function(id) {
-    tasks = tasks.filter(t => t.id !== id);
+    setTasks(tasks.filter(t => t.id !== id));
     saveTasks();
     renderTasks();
     updateTaskBadge();
@@ -77,7 +81,7 @@ window.clearCompletedTasks = function() {
     const done = tasks.filter(t => t.done).length;
     if (done === 0) { showToast('No completed tasks', 'error'); return; }
     showModal('Clear Completed Tasks?', 'This will permanently remove ' + done + ' completed task' + (done !== 1 ? 's' : '') + '.', () => {
-        tasks = tasks.filter(t => !t.done);
+        setTasks(tasks.filter(t => !t.done));
         saveTasks();
         renderTasks();
         updateTaskBadge();
@@ -169,7 +173,7 @@ function renderTaskRating(task) {
     return '<span class="task-rating ' + cls + '"><i class="fa-solid fa-' + icon + '"></i> ' + label + '</span>';
 }
 
-function renderTasks() {
+export function renderTasks() {
     const container = document.getElementById('tasksContainer');
     renderDangerBanner();
     const settings = loadTaskReminderSettings();
@@ -232,7 +236,7 @@ function renderTasks() {
     }).join('');
 }
 
-function updateTaskBadge() {
+export function updateTaskBadge() {
     const badge = document.getElementById('taskBadge');
     const overdue = tasks.filter(taskOverdue).length;
     const count = overdue > 0 ? overdue : tasks.filter(t => !t.done).length;
@@ -330,9 +334,8 @@ function checkTaskReminders() {
     }
 }
 
-function startTaskReminderCheck() {
+export function startTaskReminderCheck() {
     if (taskReminderInterval) clearInterval(taskReminderInterval);
     checkTaskReminders();
     taskReminderInterval = setInterval(checkTaskReminders, 30000);
 }
-

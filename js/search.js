@@ -1,15 +1,20 @@
 // ═══════════════════════════════════════
 // SEARCH & FILTER
 // ═══════════════════════════════════════
+import { entries, moodOrder, currentSort, setCurrentSort } from './state.js';
+import { saveSort } from './storage.js';
+import { stripHtml } from './editor.js';
+import { renderDashboard } from './entries.js';
+
 window.handleSearch = function() { renderDashboard(); };
 
 window.handleSort = function() {
-    currentSort = document.getElementById('sortSelect').value;
+    setCurrentSort(document.getElementById('sortSelect').value);
     saveSort(currentSort);
     renderDashboard();
 };
 
-function sortEntries(arr) {
+export function sortEntries(arr) {
     const sorted = [...arr];
     switch (currentSort) {
         case 'date-asc':
@@ -31,7 +36,7 @@ function sortEntries(arr) {
     return sorted;
 }
 
-function getFilteredEntries() {
+export function getFilteredEntries() {
     let result = [...entries];
     const query = document.getElementById('searchInput').value.toLowerCase();
     const tagFilter = document.getElementById('tagFilter').value;
@@ -45,7 +50,7 @@ function getFilteredEntries() {
     return sortEntries(result);
 }
 
-function updateTagFilter() {
+export function updateTagFilter() {
     const allTags = new Set();
     entries.forEach(e => (e.tags || []).forEach(t => allTags.add(t)));
     const select = document.getElementById('tagFilter');
@@ -66,7 +71,7 @@ window.clearFilters = function() {
     document.getElementById('dateFrom').value = '';
     document.getElementById('dateTo').value = '';
     document.getElementById('sortSelect').value = 'date-desc';
-    currentSort = 'date-desc';
+    setCurrentSort('date-desc');
     saveSort(currentSort);
     renderDashboard();
 };
@@ -74,7 +79,7 @@ window.clearFilters = function() {
 // ═══════════════════════════════════════
 // STREAK
 // ═══════════════════════════════════════
-function calculateStreak() {
+export function calculateStreak() {
     if (entries.length === 0) { document.getElementById('streakCount').textContent = '0'; return; }
     const dates = [...new Set(entries.map(e => new Date(e.date).toLocaleDateString()))].sort((a, b) => new Date(b) - new Date(a));
     let streak = 0;
@@ -88,4 +93,3 @@ function calculateStreak() {
     }
     document.getElementById('streakCount').textContent = streak;
 }
-

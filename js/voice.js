@@ -1,6 +1,15 @@
 // ═══════════════════════════════════════
 // VOICE RECORDING
 // ═══════════════════════════════════════
+import {
+    STORAGE_KEY, DRAFT_KEY, entries, currentRecordings,
+    recordingActive, mediaRecorder, mediaChunks, recordingStartTime, recordingTimer,
+    setCurrentRecordings, setRecordingActive, setMediaRecorder, setMediaChunks,
+    setRecordingStartTime, setRecordingTimer
+} from './state.js';
+import { showToast } from './ui.js';
+import { autoSaveDraft } from './storage.js';
+
 const MAX_RECORDINGS = 3;
 const MAX_RECORDING_SECONDS = 120;
 const VOICE_QUOTA_LIMIT = 4.5 * 1024 * 1024;
@@ -29,9 +38,9 @@ async function startRecording() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const mimeType = pickMimeType();
-        mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+        setMediaRecorder(new MediaRecorder(stream, mimeType ? { mimeType } : undefined));
         recordingMimeType = mediaRecorder.mimeType || 'audio/webm';
-        mediaChunks = [];
+        setMediaChunks([]);
         mediaRecorder.ondataavailable = function(e) {
             if (e.data && e.data.size > 0) mediaChunks.push(e.data);
         };
@@ -40,10 +49,10 @@ async function startRecording() {
             finalizeRecording();
         };
         mediaRecorder.start(250);
-        recordingActive = true;
-        recordingStartTime = Date.now();
+        setRecordingActive(true);
+        setRecordingStartTime(Date.now());
         updateRecordingUI();
-        recordingTimer = setInterval(updateRecordingTimer, 250);
+        setRecordingTimer(setInterval(updateRecordingTimer, 250));
         showToast('Recording started — click Stop when done', 'success');
     } catch (err) {
         showToast('Microphone access denied or unavailable', 'error');
@@ -59,13 +68,13 @@ function pickMimeType() {
     return '';
 }
 
-window.stopRecording = function() {
+export function stopRecording() {
     if (!recordingActive || !mediaRecorder) return;
     clearInterval(recordingTimer);
     if (mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    recordingActive = false;
+    setRecordingActive(false);
     resetRecordingUI();
-};
+}
 
 function finalizeRecording() {
     const blob = new Blob(mediaChunks, { type: recordingMimeType });
@@ -104,7 +113,7 @@ function updateRecordingTimer() {
     }
 }
 
-function formatTime(sec) {
+export function formatTime(sec) {
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60);
     return m + ':' + (s < 10 ? '0' : '') + s;
@@ -145,7 +154,7 @@ function resetRecordingUI() {
     text.textContent = 'Click record to capture your thoughts';
 }
 
-function renderRecordingList() {
+export function renderRecordingList() {
     const list = document.getElementById('voiceRecordingList');
     if (!list) { list.innerHTML = ''; return; }
     if (currentRecordings.length === 0) {
@@ -207,7 +216,7 @@ window.removeRecording = function(index) {
     autoSaveDraft();
 };
 
-function stopPreviewAudio() {
+export function stopPreviewAudio() {
     if (playingAudio) {
         playingAudio.pause();
         playingAudio = null;
@@ -219,7 +228,7 @@ function stopPreviewAudio() {
 }
 
 // Play a saved recording from the entry detail view
-window.playSavedRecording = function(btn, entryId, index) {
+export function playSavedRecording(btn, entryId, index) {
     const entry = entries.find(e => e.id === entryId);
     if (!entry || !entry.recordings || !entry.recordings[index]) return;
     const rec = entry.recordings[index];
@@ -236,4 +245,5 @@ window.playSavedRecording = function(btn, entryId, index) {
     }
     btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
     audio.play();
-};
+}
+window.playSavedRecording = playSavedRecording;

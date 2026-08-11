@@ -1,13 +1,17 @@
 // ═══════════════════════════════════════
 // TRASH
 // ═══════════════════════════════════════
-function renderTrash() {
+import { trash, entries, setTrash, setEntries } from './state.js';
+import { saveTrash, saveEntries } from './storage.js';
+import { showToast, showModal, escapeHtml } from './ui.js';
+
+export function renderTrash() {
     // Auto-expire old trash (30 days)
     const now = Date.now();
-    trash = trash.filter(e => {
+    setTrash(trash.filter(e => {
         if (!e.deletedAt) return true;
         return (now - new Date(e.deletedAt).getTime()) < 30 * 86400000;
-    });
+    }));
     saveTrash();
     updateTrashBadge();
 
@@ -49,7 +53,7 @@ window.restoreEntry = function(id) {
 
 window.permanentDelete = function(id) {
     showModal('Permanently Delete?', 'This cannot be undone.', () => {
-        trash = trash.filter(e => e.id !== id);
+        setTrash(trash.filter(e => e.id !== id));
         saveTrash();
         updateTrashBadge();
         renderTrash();
@@ -60,7 +64,7 @@ window.permanentDelete = function(id) {
 window.emptyTrash = function() {
     if (trash.length === 0) { showToast('Trash is already empty', 'error'); return; }
     showModal('Empty Trash?', 'All ' + trash.length + ' entries will be permanently deleted.', () => {
-        trash = [];
+        setTrash([]);
         saveTrash();
         updateTrashBadge();
         renderTrash();
@@ -68,7 +72,7 @@ window.emptyTrash = function() {
     });
 };
 
-function updateTrashBadge() {
+export function updateTrashBadge() {
     const badge = document.getElementById('trashBadge');
     if (trash.length > 0) {
         badge.style.display = 'inline';
@@ -77,4 +81,3 @@ function updateTrashBadge() {
         badge.style.display = 'none';
     }
 }
-

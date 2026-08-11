@@ -1,3 +1,8 @@
+import { prompts, writingTips } from './prompts.js';
+import { currentPromptCategory, setPromptCategoryState } from './state.js';
+import { resetForm, navigateTo } from './navigation.js';
+import { autoSaveDraft } from './storage.js';
+
 function getPromptSeed() {
     const now = new Date();
     return now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
@@ -8,7 +13,7 @@ function seededRandom(seed) {
     return x - Math.floor(x);
 }
 
-function renderPromptBanner() {
+export function renderPromptBanner() {
     const categories = Object.keys(prompts);
     const catRow = document.getElementById('promptCategories');
     catRow.innerHTML = '<button class="prompt-chip ' + (currentPromptCategory === 'all' ? 'active' : '') + '" onclick="setPromptCategory(\'all\')">All</button>' +
@@ -27,7 +32,7 @@ function renderPromptBanner() {
 }
 
 window.setPromptCategory = function(cat) {
-    currentPromptCategory = cat;
+    setPromptCategoryState(cat);
     renderPromptBanner();
 };
 
@@ -51,7 +56,7 @@ window.refreshPrompt = function() {
     document.getElementById('promptText').textContent = pool[idx];
 };
 
-function renderWritingTip() {
+export function renderWritingTip() {
     const seed = getPromptSeed();
     const idx = Math.floor(seededRandom(seed + 7) * writingTips.length);
     document.getElementById('writingTipText').innerHTML = '<strong>Writing Tip:</strong> ' + writingTips[idx];

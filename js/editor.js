@@ -1,6 +1,8 @@
 // ═══════════════════════════════════════
 // RICH TEXT HELPERS
 // ═══════════════════════════════════════
+import { autoSaveDraft } from './storage.js';
+
 window.formatDoc = function(command, value) {
     const editor = document.getElementById('entryContent');
     editor.focus();
@@ -14,7 +16,7 @@ window.formatDoc = function(command, value) {
     updateToolbarState();
 };
 
-function getEditorContent() {
+export function getEditorContent() {
     const editor = document.getElementById('entryContent');
     const html = editor.innerHTML;
     const stripped = stripHtml(html).trim();
@@ -23,13 +25,13 @@ function getEditorContent() {
     return isEmpty ? '' : html;
 }
 
-function setEditorContent(html) {
+export function setEditorContent(html) {
     const editor = document.getElementById('entryContent');
     editor.innerHTML = html || '';
     editor.classList.toggle('editor-empty', !html || /^(<br\s*\/?>|\s|&nbsp;)*$/.test(html));
 }
 
-function sanitizeHtml(html) {
+export function sanitizeHtml(html) {
     if (!html) return '';
     const allowed = ['b', 'i', 'u', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr', 'pre'];
     const temp = document.createElement('div');
@@ -58,7 +60,7 @@ function sanitizeHtml(html) {
     return temp.innerHTML;
 }
 
-function stripHtml(html) {
+export function stripHtml(html) {
     if (!html) return '';
     const div = document.createElement('div');
     div.innerHTML = html;
@@ -77,13 +79,13 @@ document.addEventListener('keydown', function(e) {
     if (e.ctrlKey || e.metaKey) {
         if (e.key === 'b' || e.key === 'B') {
             e.preventDefault();
-            formatDoc('bold');
+            window.formatDoc('bold');
         } else if (e.key === 'i' || e.key === 'I') {
             e.preventDefault();
-            formatDoc('italic');
+            window.formatDoc('italic');
         } else if (e.key === 'u' || e.key === 'U') {
             e.preventDefault();
-            formatDoc('underline');
+            window.formatDoc('underline');
         }
     }
 });

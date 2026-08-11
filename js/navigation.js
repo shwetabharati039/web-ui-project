@@ -1,7 +1,33 @@
 // ═══════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════
-window.navigateTo = function(page, param) {
+import {
+    recordingActive, editingEntryId, selectedMood, currentTags, currentImages, currentRecordings,
+    setSelectedMood, setEditingEntryId, setCurrentTags, setCurrentImages, setCurrentRecordings
+} from './state.js';
+import { stopRecording, stopPreviewAudio, renderRecordingList } from './voice.js';
+import { leaveGamePage, openGamePage } from './game.js';
+import { renderDashboard, renderBookmarks, renderDetail } from './entries.js';
+import { applyPaperTheme } from './theme.js';
+import { renderTemplateGrid } from './templates.js';
+import { renderCalendar } from './calendar.js';
+import { renderTasks } from './tasks.js';
+import { renderAnalytics } from './analytics.js';
+import { renderTrash } from './trash.js';
+import { renderPromptBanner, renderWritingTip } from './prompts-ui.js';
+import { calculateStreak } from './search.js';
+import { renderImagePreviews } from './images.js';
+import { stripHtml, setEditorContent } from './editor.js';
+import { autoSaveDraft } from './storage.js';
+
+window.navigateTo = navigateTo;
+window.setDefaultDate = setDefaultDate;
+window.resetForm = resetForm;
+window.renderTags = renderTags;
+window.updateWordCount = updateWordCount;
+window.handleHash = handleHash;
+
+export function navigateTo(page, param) {
     if (recordingActive && typeof stopRecording === 'function') stopRecording();
     if (page !== 'game') leaveGamePage();
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -46,9 +72,9 @@ window.navigateTo = function(page, param) {
         renderTrash();
         window.location.hash = 'trash';
     }
-};
+}
 
-function handleHash() {
+export function handleHash() {
     const hash = window.location.hash.slice(1);
     if (!hash) { navigateTo('dashboard'); return; }
     if (hash === 'bookmarks') { navigateTo('bookmarks'); return; }
@@ -65,22 +91,22 @@ function handleHash() {
 // ═══════════════════════════════════════
 // FORM
 // ═══════════════════════════════════════
-function setDefaultDate() {
+export function setDefaultDate() {
     const now = new Date();
     const offset = now.getTimezoneOffset();
     const local = new Date(now.getTime() - offset * 60000);
     document.getElementById('entryDate').value = local.toISOString().slice(0, 16);
 }
 
-function resetForm() {
+export function resetForm() {
     document.getElementById('entryTitle').value = '';
     setEditorContent('');
     document.getElementById('editEntryId').value = '';
-    selectedMood = '';
-    currentTags = [];
-    currentImages = [];
-    currentRecordings = [];
-    editingEntryId = null;
+    setSelectedMood('');
+    setCurrentTags([]);
+    setCurrentImages([]);
+    setCurrentRecordings([]);
+    setEditingEntryId(null);
     document.querySelectorAll('.mood-option').forEach(m => m.classList.remove('selected'));
     renderTags();
     renderImagePreviews();
@@ -94,7 +120,7 @@ function resetForm() {
 window.selectMood = function(el) {
     document.querySelectorAll('.mood-option').forEach(m => m.classList.remove('selected'));
     el.classList.add('selected');
-    selectedMood = el.dataset.mood;
+    setSelectedMood(el.dataset.mood);
     autoSaveDraft();
 };
 
@@ -111,7 +137,7 @@ window.handleTagInput = function(e) {
     }
 };
 
-function renderTags() {
+export function renderTags() {
     const wrap = document.getElementById('tagsInputWrap');
     const input = document.getElementById('tagInput');
     wrap.querySelectorAll('.tag-item').forEach(t => t.remove());
@@ -129,7 +155,7 @@ window.removeTag = function(index) {
     autoSaveDraft();
 };
 
-function updateWordCount() {
+export function updateWordCount() {
     const editor = document.getElementById('entryContent');
     const text = stripHtml(editor.innerHTML);
     const words = text.trim() ? text.trim().split(/\s+/).length : 0;

@@ -1,6 +1,10 @@
 // ═══════════════════════════════════════
 // IMAGE ATTACHMENTS
 // ═══════════════════════════════════════
+import { currentImages } from './state.js';
+import { showToast } from './ui.js';
+import { autoSaveDraft } from './storage.js';
+
 window.handleImageUpload = function(event) {
     const files = Array.from(event.target.files);
     if (currentImages.length + files.length > 3) {
@@ -44,7 +48,7 @@ window.removeImage = function(index) {
     autoSaveDraft();
 };
 
-function renderImagePreviews() {
+export function renderImagePreviews() {
     const grid = document.getElementById('imagePreviewGrid');
     grid.innerHTML = currentImages.map((src, i) =>
         '<div class="image-preview-item"><img src="' + src + '" alt="Preview"><button class="image-preview-remove" onclick="removeImage(' + i + ')">&times;</button></div>'
@@ -54,11 +58,13 @@ function renderImagePreviews() {
 // ═══════════════════════════════════════
 // LIGHTBOX
 // ═══════════════════════════════════════
-window.openLightbox = function(src) {
+export function openLightbox(src) {
     document.getElementById('lightboxImg').src = src;
     document.getElementById('lightbox').classList.add('show');
-};
+}
+window.openLightbox = openLightbox;
 
-window.closeLightbox = function() {
+export function closeLightbox() {
     document.getElementById('lightbox').classList.remove('show');
-};
+}
+window.closeLightbox = closeLightbox;

@@ -1,7 +1,9 @@
 // ═══════════════════════════════════════
 // ANALYTICS
 // ═══════════════════════════════════════
-function renderAnalytics() {
+import { entries, moodOrder } from './state.js';
+
+export function renderAnalytics() {
     // Stats cards
     const totalWords = entries.reduce((s, e) => s + (e.wordCount || 0), 0);
     const avgWords = entries.length ? Math.round(totalWords / entries.length) : 0;
@@ -232,7 +234,7 @@ function renderAnalytics() {
     }
 }
 
-function calculateLongestStreak() {
+export function calculateLongestStreak() {
     if (entries.length === 0) return 0;
     const dates = [...new Set(entries.map(e => new Date(e.date).toLocaleDateString()))].sort((a, b) => new Date(a) - new Date(b));
     let longest = 1, current = 1;
