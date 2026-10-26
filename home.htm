@@ -96,7 +96,7 @@
                     <i class="fa-solid fa-list-check"></i> Tasks <span class="task-count-badge" id="taskBadge" style="display:none;">0</span>
                 </button>
                 <button class="nav-item" data-page="game" onclick="navigateTo('game')">
-                    <i class="fa-solid fa-gamepad"></i> Game
+                    <i class="fa-solid fa-shapes"></i> Word Scramble
                 </button>
                 <button class="nav-item" data-page="analytics" onclick="navigateTo('analytics')">
                     <i class="fa-solid fa-chart-line"></i> Analytics
@@ -523,34 +523,118 @@
                 <div id="tasksContainer" style="margin-top:20px;"></div>
             </div>
 
-            <!-- Game Page -->
+            <!-- Game Page: Anagram / Word Scramble -->
             <div class="page" id="page-game">
                 <div class="page-header">
                     <div>
-                        <h1 class="page-title">Index Craft</h1>
-                        <p class="page-subtitle" id="gameSubtitle">A blocky voxel sandbox rendered with real-time ray tracing</p>
+                        <h1 class="page-title"><i class="fa-solid fa-shapes"></i> Word Scramble</h1>
+                        <p class="page-subtitle" id="gameSubtitle">Unscramble reflective & mindful words to inspire your journaling</p>
                     </div>
                 </div>
 
-                <div class="game-hud">
-                    <span class="game-hud-hint">WASD / Arrows move · Mouse look · Left click break · Right click place · Space jump · 1-9 select block · P pause</span>
-                    <button class="game-sound-btn" id="gameSoundBtn" onclick="toggleGameSound()" title="Toggle sound">
-                        <i class="fa-solid fa-volume-xmark"></i>
-                    </button>
+                <!-- HUD / Stats Bar -->
+                <div class="scramble-hud">
+                    <div class="scramble-hud-stat">
+                        <i class="fa-solid fa-trophy"></i>
+                        <span class="scramble-hud-label">Score</span>
+                        <span class="scramble-hud-val" id="scrambleScore">0</span>
+                    </div>
+                    <div class="scramble-hud-stat">
+                        <i class="fa-solid fa-fire"></i>
+                        <span class="scramble-hud-label">Streak</span>
+                        <span class="scramble-hud-val" id="scrambleStreak">0</span>
+                    </div>
+                    <div class="scramble-hud-stat">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span class="scramble-hud-label">Solved</span>
+                        <span class="scramble-hud-val" id="scrambleSolved">0</span>
+                    </div>
+                    <div class="scramble-hud-actions">
+                        <button class="scramble-icon-btn" id="gameSoundBtn" onclick="toggleGameSound()" title="Toggle Sound">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="game-frame">
-                    <canvas id="gameCanvas"></canvas>
-                    <div class="game-overlay" id="gameOverlay">
-                        <div class="game-overlay-card">
-                            <h2 id="gameOverlayTitle">Index Craft</h2>
-                            <p id="gameOverlayText">A blocky voxel world rendered with real-time path tracing — mine and build anything. Move with <strong>WASD</strong> or the arrow keys, aim with your <strong>mouse</strong> (click the game to lock the cursor), <strong>left click</strong> to break blocks, <strong>right click</strong> to place, <strong>Space</strong> to jump, <strong>1-9</strong> or the scroll wheel to select a block, pause with <strong>P</strong> or <strong>Esc</strong>.</p>
-                            <button class="btn btn-primary" id="gameOverlayBtn" onclick="gameOverlayAction()">
-                                <i class="fa-solid fa-play"></i> Enter World
+                <!-- Main Game Card -->
+                <div class="scramble-card" id="scrambleCard">
+                    <!-- Top Info: Category Badge & Word Length -->
+                    <div class="scramble-meta">
+                        <span class="scramble-badge" id="scrambleCategory"><i class="fa-solid fa-seedling"></i> Mindfulness</span>
+                        <span class="scramble-length-tag" id="scrambleLengthTag">9 letters</span>
+                    </div>
+
+                    <!-- Clue / Reflection definition -->
+                    <div class="scramble-clue-box">
+                        <div class="scramble-clue-title"><i class="fa-solid fa-lightbulb"></i> Clue & Meaning</div>
+                        <p class="scramble-clue-text" id="scrambleClue">Loading reflective word...</p>
+                    </div>
+
+                    <!-- Target / Answer Slots -->
+                    <div class="scramble-slots-wrap">
+                        <div class="scramble-slots-label">Tap an available letter below or type on your keyboard:</div>
+                        <div class="scramble-slots" id="scrambleSlots"></div>
+                    </div>
+
+                    <!-- Scrambled Letter Bank -->
+                    <div class="scramble-bank-wrap">
+                        <div class="scramble-bank-label">Available Letters</div>
+                        <div class="scramble-bank" id="scrambleBank"></div>
+                    </div>
+
+                    <!-- Action Controls -->
+                    <div class="scramble-actions">
+                        <button class="btn btn-secondary scramble-btn" onclick="clearScrambleAttempt()" title="Return all letters to bank">
+                            <i class="fa-solid fa-rotate-left"></i> Clear
+                        </button>
+                        <button class="btn btn-secondary scramble-btn" onclick="shuffleScrambleBank()" title="Mix up letter bank (Spacebar)">
+                            <i class="fa-solid fa-shuffle"></i> Shuffle
+                        </button>
+                        <button class="btn btn-secondary scramble-btn" onclick="useScrambleHint()" id="scrambleHintBtn" title="Reveal one letter">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Hint (<span id="scrambleHintCount">2</span>)
+                        </button>
+                        <button class="btn btn-primary scramble-btn scramble-btn-check" onclick="checkScrambleWord()" title="Check your answer (Enter)">
+                            <i class="fa-solid fa-check"></i> Check Word
+                        </button>
+                        <button class="btn btn-ghost scramble-btn scramble-btn-skip" onclick="skipScrambleWord()" title="Try a different word">
+                            <i class="fa-solid fa-forward-step"></i> Skip
+                        </button>
+                    </div>
+
+                    <!-- Status feedback banner -->
+                    <div class="scramble-feedback" id="scrambleFeedback" style="display:none;"></div>
+                </div>
+
+                <!-- Celebration & Reflection Modal -->
+                <div class="scramble-modal-overlay" id="scrambleModalOverlay" style="display:none;" onclick="if(event.target===this)closeScrambleCelebration()">
+                    <div class="scramble-modal">
+                        <div class="scramble-modal-confetti">✨ 🎉 🌟</div>
+                        <div class="scramble-modal-badge" id="scrambleModalBadge">Word Solved!</div>
+                        <h2 class="scramble-modal-word" id="scrambleModalWord">GRATITUDE</h2>
+                        <p class="scramble-modal-meaning" id="scrambleModalMeaning"></p>
+                        
+                        <div class="scramble-modal-quote-box">
+                            <i class="fa-solid fa-quote-left quote-icon"></i>
+                            <p class="scramble-modal-quote" id="scrambleModalQuote"></p>
+                        </div>
+
+                        <div class="scramble-modal-prompt-box">
+                            <div class="scramble-prompt-header"><i class="fa-solid fa-feather-pointed"></i> Daily Reflection Prompt</div>
+                            <p class="scramble-modal-prompt" id="scrambleModalPrompt"></p>
+                        </div>
+
+                        <div class="scramble-modal-actions">
+                            <button class="btn btn-primary" onclick="writeAboutScrambleWord()">
+                                <i class="fa-solid fa-pen-nib"></i> Write in Diary
+                            </button>
+                            <button class="btn btn-secondary" onclick="newScrambleWord()">
+                                <i class="fa-solid fa-arrow-right"></i> Next Word
+                            </button>
+                            <button class="btn btn-ghost" onclick="closeScrambleCelebration()">
+                                Close
                             </button>
                         </div>
                     </div>
-                    <button class="fps-fire-btn" id="fpsFireBtn">MINE</button>
                 </div>
             </div>
 

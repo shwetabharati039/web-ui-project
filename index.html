@@ -5,18 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LOGIN PAGE</title>
     <link rel="stylesheet" href="css/auth.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body>
 
     <div class="auth-container">
         <div class="auth-box active" id="login-form">
             <form id="loginForm">
-                <h2>Welcome</h2>
+                <h2>Welcome to Wispher</h2>
                 <p>Login to your Diary secret keeper</p>
-                <input type="text" id="loginUser" placeholder="Username" required>
-                <input type="password" id="loginPass" placeholder="Password" required>
-                <p id="loginError" style="color:rgb(38, 138, 99); display:none; font-size:13px;">Invalid username or password</p>
+                <input type="text" id="loginUser" placeholder="Username" required autocomplete="username">
+                <div class="password-wrapper">
+                    <input type="password" id="loginPass" placeholder="Password" required autocomplete="current-password">
+                    <button type="button" class="toggle-password" id="togglePass" aria-label="Show password" title="Show password">
+                        <svg class="eye-icon eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg class="eye-icon eye-closed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                            <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                            <line x1="2" y1="2" x2="22" y2="22"></line>
+                        </svg>
+                    </button>
+                </div>
+                <p id="loginError" style="color:rgb(228, 77, 97); display:none; font-size:13px;">Invalid username or password</p>
                 <button type="submit" name="login">Log In</button>
             </form>
         </div>
