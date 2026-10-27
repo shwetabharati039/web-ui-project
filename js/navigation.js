@@ -36,8 +36,17 @@ export function navigateTo(page, param) {
     if (pageEl) pageEl.classList.add('active');
     const navBtn = document.querySelector('.nav-item[data-page="' + page + '"]');
     if (navBtn) navBtn.classList.add('active');
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('show');
+    if (typeof window.closeSidebar === 'function') {
+        window.closeSidebar();
+    } else {
+        const sb = document.getElementById('sidebar');
+        const ov = document.getElementById('sidebarOverlay');
+        const hb = document.getElementById('hamburgerBtn');
+        if (sb) sb.classList.remove('open');
+        if (ov) ov.classList.remove('show');
+        if (hb) hb.classList.remove('is-active');
+        document.body.classList.remove('sidebar-open');
+    }
 
     if (page === 'dashboard') {
         renderDashboard();

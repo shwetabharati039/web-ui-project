@@ -8,10 +8,37 @@ import { closeLightbox } from './images.js';
 import { pauseGame, gameInstance } from './game.js';
 import { setModalConfirmFn, modalConfirmFn } from './state.js';
 
-window.toggleSidebar = function() {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebarOverlay').classList.toggle('show');
-};
+export function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const hamburger = document.getElementById('hamburgerBtn');
+    if (!sidebar) return;
+
+    const isOpen = sidebar.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('show', isOpen);
+    if (hamburger) {
+        hamburger.classList.toggle('is-active', isOpen);
+        hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        hamburger.title = isOpen ? 'Close navigation' : 'Open navigation';
+    }
+    document.body.classList.toggle('sidebar-open', isOpen);
+}
+window.toggleSidebar = toggleSidebar;
+
+export function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const hamburger = document.getElementById('hamburgerBtn');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('show');
+    if (hamburger) {
+        hamburger.classList.remove('is-active');
+        hamburger.setAttribute('aria-expanded', 'false');
+        hamburger.title = 'Open navigation';
+    }
+    document.body.classList.remove('sidebar-open');
+}
+window.closeSidebar = closeSidebar;
 
 // ═══════════════════════════════════════
 // MODALS
@@ -38,6 +65,11 @@ document.addEventListener('keydown', function(e) {
     const isContentEditable = e.target.isContentEditable;
 
     if (e.key === 'Escape') {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && sidebar.classList.contains('open')) {
+            closeSidebar();
+            return;
+        }
         if (tutorialStep >= 0) { endTutorial(); return; }
         if (document.getElementById('lightbox').classList.contains('show')) { closeLightbox(); return; }
         if (document.getElementById('shortcutsModal').classList.contains('show')) { closeShortcutsModal(); return; }

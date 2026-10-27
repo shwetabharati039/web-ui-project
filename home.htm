@@ -66,18 +66,37 @@
         </div>
     </div>
 
-    <!-- Mobile Header -->
-    <div class="mobile-header">
-        <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-        <span class="mobile-title"><i class="fa-solid fa-book-open"></i> Index</span>
-    </div>
+    <!-- Mobile & Tablet Header -->
+    <header class="mobile-header">
+        <div class="mobile-header-left">
+            <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Toggle navigation menu" title="Open navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="mobile-title" onclick="navigateTo('dashboard')" role="button" tabindex="0">
+                <i class="fa-solid fa-book-open"></i> Index
+            </div>
+        </div>
+        <div class="mobile-header-right">
+            <button class="mobile-header-btn" onclick="navigateTo('new-entry')" aria-label="New Entry" title="Write New Entry">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+            <button class="mobile-header-btn" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle Dark/Light Mode">
+                <i class="fa-solid fa-moon" id="mobileThemeIcon"></i>
+            </button>
+        </div>
+    </header>
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <div class="app-layout">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-logo">
-                <i class="fa-solid fa-book-open"></i> Index
+            <div class="sidebar-header-row">
+                <div class="sidebar-logo">
+                    <i class="fa-solid fa-book-open"></i> Index
+                </div>
+                <button class="sidebar-close-btn" id="sidebarCloseBtn" onclick="toggleSidebar()" aria-label="Close sidebar" title="Close sidebar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <nav class="sidebar-nav">
                 <button class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">

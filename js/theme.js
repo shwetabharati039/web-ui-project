@@ -23,6 +23,8 @@ export function loadTheme() {
         document.documentElement.setAttribute('data-theme', 'dark');
         document.getElementById('themeIcon').className = 'fa-solid fa-sun';
         document.getElementById('themeLabel').textContent = 'Light Mode';
+        const mIcon = document.getElementById('mobileThemeIcon');
+        if (mIcon) mIcon.className = 'fa-solid fa-sun';
     }
     renderAutoScheduleUI();
 }
@@ -36,8 +38,11 @@ export function toggleTheme() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
     localStorage.setItem(THEME_KEY, isDark ? 'light' : 'dark');
-    document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+    const newIconClass = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+    document.getElementById('themeIcon').className = newIconClass;
     document.getElementById('themeLabel').textContent = isDark ? 'Dark Mode' : 'Light Mode';
+    const mIcon = document.getElementById('mobileThemeIcon');
+    if (mIcon) mIcon.className = newIconClass;
     renderAutoScheduleUI();
 }
 window.toggleTheme = toggleTheme;

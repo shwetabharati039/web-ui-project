@@ -30,8 +30,11 @@ export function navigateTo(page, param) {
 
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
+    const hamburger = document.getElementById('hamburgerBtn');
     if (sidebar) sidebar.classList.remove('open');
     if (overlay) overlay.classList.remove('show');
+    if (hamburger) hamburger.classList.remove('is-active');
+    document.body.classList.remove('sidebar-open');
 
     // Update URL hash
     if (page === 'dashboard') {

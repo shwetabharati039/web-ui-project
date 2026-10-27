@@ -13,8 +13,31 @@ export function registerEscapeHandler(fn) {
 export function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
-    if (sidebar) sidebar.classList.toggle('open');
-    if (overlay) overlay.classList.toggle('show');
+    const hamburger = document.getElementById('hamburgerBtn');
+    if (!sidebar) return;
+
+    const isOpen = sidebar.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('show', isOpen);
+    if (hamburger) {
+        hamburger.classList.toggle('is-active', isOpen);
+        hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        hamburger.title = isOpen ? 'Close navigation' : 'Open navigation';
+    }
+    document.body.classList.toggle('sidebar-open', isOpen);
+}
+
+export function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const hamburger = document.getElementById('hamburgerBtn');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('show');
+    if (hamburger) {
+        hamburger.classList.remove('is-active');
+        hamburger.setAttribute('aria-expanded', 'false');
+        hamburger.title = 'Open navigation';
+    }
+    document.body.classList.remove('sidebar-open');
 }
 
 export function setupKeyboardShortcuts(options = {}) {
