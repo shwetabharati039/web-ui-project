@@ -1,0 +1,5 @@
+button:not(.scramble-tile) {
+    box-sizing: border-box;
+    height: 40px;
+    min-width: 40px;
+}

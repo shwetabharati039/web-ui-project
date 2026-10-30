@@ -139,30 +139,34 @@ export function renderTutorialStep() {
         highlight.style.height = (rect.height + 8) + 'px';
 
         let tooltipTop, tooltipLeft;
-        const tooltipWidth = 360;
+        const tooltipWidth = Math.min(360, window.innerWidth - 32);
+        tooltip.style.width = tooltipWidth + 'px';
+        const tooltipHeight = tooltip.offsetHeight;
+        const placeAbove = rect.bottom + tooltipHeight + 24 > window.innerHeight
+            && rect.top > tooltipHeight + 24;
 
-        if (rect.bottom + 200 > window.innerHeight) {
-            tooltipTop = rect.top + scrollTop - 10;
+        if (placeAbove) {
+            tooltipTop = rect.top + scrollTop - tooltipHeight - 16;
             tooltip.className = 'tutorial-tooltip arrow-bottom';
         } else {
             tooltipTop = rect.bottom + scrollTop + 16;
             tooltip.className = 'tutorial-tooltip arrow-top';
         }
 
-        tooltipLeft = rect.left + scrollLeft;
-        if (tooltipLeft + tooltipWidth > window.innerWidth - 20) {
-            tooltipLeft = window.innerWidth - tooltipWidth - 20;
-        }
-        if (tooltipLeft < 20) tooltipLeft = 20;
+        tooltipLeft = Math.min(
+            Math.max(rect.left + scrollLeft, scrollLeft + 16),
+            scrollLeft + window.innerWidth - tooltipWidth - 16
+        );
+        tooltipTop = Math.min(
+            Math.max(tooltipTop, scrollTop + 16),
+            scrollTop + window.innerHeight - tooltipHeight - 16
+        );
 
         tooltip.style.top = tooltipTop + 'px';
         tooltip.style.left = tooltipLeft + 'px';
 
         requestAnimationFrame(() => {
             tooltip.classList.add('visible');
-            if (rect.bottom + 200 > window.innerHeight) {
-                tooltip.style.top = (tooltipTop - tooltip.offsetHeight - 8) + 'px';
-            }
         });
     }
 };
@@ -183,9 +187,12 @@ export function checkTutorial() {
     }
 }
 
+window.addEventListener('resize', function() {
+    if (tutorialStep >= 0) renderTutorialStep();
+});
+
 window.replayTutorial = function() {
     localStorage.removeItem(TUTORIAL_KEY);
     tutorialStep = -1;
     showTutorialWelcome();
 };
-

@@ -255,9 +255,33 @@
 
 @media (max-width: 768px) {
     .tutorial-tooltip {
-        max-width: 280px;
+        width: calc(100vw - 32px);
+        max-width: none;
+        max-height: calc(100vh - 32px);
+        max-height: calc(100dvh - 32px);
+        overflow-y: auto;
         padding: 18px 20px;
     }
+
+    .tutorial-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .tutorial-dots {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .tutorial-btns {
+        justify-content: flex-end;
+    }
+
+    .tutorial-btn {
+        white-space: nowrap;
+    }
+
     .tutorial-welcome {
         padding: 32px 24px;
     }
